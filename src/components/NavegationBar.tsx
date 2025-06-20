@@ -105,9 +105,8 @@ export default function SuudaiNavbar() {
             </Button>
           </DropdownTrigger>
           <DropdownMenu aria-label="Gestion Menu">
-            <DropdownItem key="g1">Estadísticas</DropdownItem>
             <DropdownItem key="g2">Inventario</DropdownItem>
-            <DropdownItem key="g3">Usuarios</DropdownItem>
+            <DropdownItem key="g3" href="/users">Usuarios</DropdownItem>
           </DropdownMenu>
         </Dropdown>
       </NavbarContent>

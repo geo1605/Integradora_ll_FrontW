@@ -6,9 +6,8 @@ import {
 } from "@heroui/react";
 import SearchIcon from "@mui/icons-material/Search";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import AddIcon from "@mui/icons-material/Add";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { getAllUsers } from "../../api/users";
+import { getAllUsers } from "../../api/Users";
 import { SuudaiNavbar } from "../../components";
 
 const columns = [
@@ -183,7 +182,6 @@ export default function UserTable() {
             </DropdownMenu>
           </Dropdown>
 
-          <Button color="primary" endContent={<AddIcon />}>Nuevo</Button>
         </div>
       </div>
 
