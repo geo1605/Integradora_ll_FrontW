@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Form, Input, Button, Modal, ModalContent, ModalHeader,
   ModalBody, ModalFooter, useDisclosure
 } from "@heroui/react";
-import LockIcon from "@mui/icons-material/Lock";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import QrCodeOutlinedIcon from "@mui/icons-material/QrCodeOutlined";
@@ -12,6 +11,12 @@ import { loginUser } from "../../api/auth.users";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import LoginQR from "./LoginQr";
+import { useGoogleLogin } from '@react-oauth/google';
+import { loginWithGoogle } from '../../api/authGoogle.api'
+import axios from "axios";
+
+
+
 
 export default function Login({ clear }: { clear: boolean }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -59,6 +64,39 @@ export default function Login({ clear }: { clear: boolean }) {
     }
   }, [clear]);
 
+  const login = useGoogleLogin({
+    flow: 'implicit',
+    scope: 'openid email profile',
+    onSuccess: async (tokenResponse) => {
+      try {
+        console.log("[1] Respuesta de Google recibida");
+
+        const tokenToSend = tokenResponse.id_token || tokenResponse.access_token;
+        if (!tokenToSend) throw new Error("No se recibió token válido");
+
+        console.log("[2] Enviando token al backend...");
+        const res = await loginWithGoogle(tokenToSend);
+
+        console.log("[3] Respuesta del backend recibida:", res);
+        localStorage.setItem('token', res.token);
+
+        console.log("[4] Token almacenado. Redirigiendo...");
+
+        // Opción 1: Redirección forzada (funciona siempre)
+        window.location.assign('/');
+
+        // Opción 2: Si usas React Router (puede fallar si hay estado que bloquee)
+        // navigate('/', { replace: true });
+
+      } catch (error) {
+        console.error("Error completo:", error);
+        const errorMsg = (error instanceof Error) ? error.message : String(error);
+        alert(`Error: ${errorMsg}`);
+      }
+    },
+    onError: (error) => console.error("Error de Google:", error),
+  });
+
   return (
     <>
       <Form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
@@ -100,6 +138,7 @@ export default function Login({ clear }: { clear: boolean }) {
       <Button
         className="w-full"
         variant="bordered"
+        onClick={() => login()}
         startContent={<img src="https://img.icons8.com/?size=512&id=17949&format=png" alt="Google" className="w-5 h-5" />}
       >
         Continuar con Google
