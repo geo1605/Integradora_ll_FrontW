@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AuthPage from "./features/auth/authPage";
-import {Home, ScreenPlants} from "./features/";
+import {Home, ScreenPlants, UsersTable} from "./features/";
 import {PublicOnlyRoute, ProtectedRoute} from "./components/";
 import { HeroUIProvider } from "@heroui/react";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -37,6 +37,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ScreenPlants />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/users"
+                element={
+                  <ProtectedRoute>
+                    <UsersTable />
                   </ProtectedRoute>
                 }
               />

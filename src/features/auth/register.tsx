@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 
 
 
-import { registerUser } from "../../api/Register.users";
+import { registerUser } from "../../api/Users";
 
 interface RegisterProps {
   clear: boolean;
