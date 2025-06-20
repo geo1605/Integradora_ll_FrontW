@@ -16,7 +16,7 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
-  // ✅ Inicializa desde localStorage SIN useEffect
+  // Inicializa desde localStorage SIN useEffect
   const [theme, setTheme] = useState<string>(() => {
     const stored = localStorage.getItem('theme');
     if (stored === 'dark' || stored === 'light') return stored;
@@ -24,7 +24,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
     return prefersDark ? 'dark' : 'light';
   });
 
-  // ✅ Aplica la clase y guarda en localStorage
+  // Aplica la clase y guarda en localStorage
   useEffect(() => {
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(theme);

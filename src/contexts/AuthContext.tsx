@@ -1,24 +1,38 @@
-// contexts/AuthContext.tsx
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
+import { verifyToken } from "../api/auth.users";
 
 interface AuthContextType {
   token: string | null;
   setToken: (token: string | null) => void;
-  isLoading: boolean; // Nuevo campo
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Estado de carga inicial
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Verificar el token en localStorage (simulando async)
     const storedToken = localStorage.getItem("token");
-    setToken(storedToken);
-    setIsLoading(false); // Finaliza la carga
+
+    if (storedToken) {
+      verifyToken(storedToken)
+        .then((isValid) => {
+          if (isValid) {
+            setToken(storedToken);
+          } else {
+            localStorage.removeItem("token");
+            setToken(null);
+          }
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    } else {
+      setIsLoading(false);
+    }
   }, []);
 
   const updateToken = (newToken: string | null) => {
@@ -43,4 +57,4 @@ export const useAuth = (): AuthContextType => {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-};
+}; 

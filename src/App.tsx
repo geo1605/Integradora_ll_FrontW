@@ -1,17 +1,19 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AuthPage from "./features/auth/authPage";
-import Home from "./features/dashboard/home";
-import ProtectedRoute from "./components/ProtectedRoutes";
-import PublicOnlyRoute from "./components/PublicOnlyRoute";
+import {Home, ScreenPlants} from "./features/";
+import {PublicOnlyRoute, ProtectedRoute} from "./components/";
 import { HeroUIProvider } from "@heroui/react";
 import { AuthProvider } from "./contexts/AuthContext";
-import { ThemeProvider } from "./contexts/themeContext"; // ✅ importa el ThemeProvider
+import { ThemeProvider } from "./contexts/themeContext";
 
 function App() {
   return (
     <HeroUIProvider>
+      {/* Envuelve aplicación con el AuthProvider */}
       <AuthProvider>
-        <ThemeProvider> {/* ✅ ENVUELVE TU APP AQUÍ */}
+        {/* Envuelve aplicación con el ThemeProvider */}
+        <ThemeProvider> 
+          {/* Configura las rutas de la aplicación */}
           <BrowserRouter>
             <Routes>
               <Route
@@ -27,6 +29,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Home />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/plants"
+                element={
+                  <ProtectedRoute>
+                    <ScreenPlants />
                   </ProtectedRoute>
                 }
               />

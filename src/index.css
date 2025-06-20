@@ -12,6 +12,7 @@
   --alert: #CE2626;
   --advisement: #FDC541;
   --text-color: #111111;
+  --pipe-color: #D3D3D3;
 }
 
 .dark {
@@ -22,6 +23,7 @@
   --alert: #B23B3B;
   --advisement: #E0B13F;
   --text-color: #F0F0F0;
+  --pipe-color: #858585;
 }
 * {
   margin: 0;

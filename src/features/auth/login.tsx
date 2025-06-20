@@ -11,12 +11,15 @@ import QrCodeOutlinedIcon from "@mui/icons-material/QrCodeOutlined";
 import { loginUser } from "../../api/auth.users";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import LoginQR from "./LoginQr";
 
 export default function Login({ clear }: { clear: boolean }) {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorModalOpen, setErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
 
   const loginSuccessModal = useDisclosure();
   const qrModal = useDisclosure();
@@ -38,8 +41,9 @@ export default function Login({ clear }: { clear: boolean }) {
       } else {
         throw new Error("Token no encontrado");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Login failed:", err);
+      setErrorMessage(err.message || "Error de autenticación");
       setErrorModalOpen(true);
     }
   };
@@ -134,7 +138,7 @@ export default function Login({ clear }: { clear: boolean }) {
             <>
               <ModalHeader className="text-red-600 font-bold">Error de autenticación</ModalHeader>
               <ModalBody>
-                <p>Correo o contraseña incorrectos. Inténtalo de nuevo.</p>
+                <p>{errorMessage || "Error de autenticación"}</p>
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" onPress={onClose}>Cerrar</Button>
@@ -151,7 +155,7 @@ export default function Login({ clear }: { clear: boolean }) {
             <>
               <ModalHeader>Registro con QR</ModalHeader>
               <ModalBody>
-                <p>Escáner próximamente...</p>
+                <LoginQR />
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>Cerrar</Button>

@@ -60,15 +60,18 @@ export default function SuudaiNavbar() {
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           className="sm:hidden"
         />
-        <NavbarBrand className="gap-2 px-4 py-2">
-          <img src={logo} alt="SUUDAI logo" className="h-12" />
-          <span className="font-bold text-lg">SUUDAI</span>
-        </NavbarBrand>
+        <Link  href="/" className="flex items-center gap-2 px-4 py-2 no-underline text-inherit">
+          <NavbarBrand>
+            <img src={logo} alt="SUUDAI logo" className="h-12" />
+            <span className="font-bold text-lg">SUUDAI</span>
+          </NavbarBrand>
+        </Link>
+
       </NavbarContent>
 
       <NavbarContent className="gap-6 hidden sm:flex" justify="center">
         <NavbarItem>
-          <Link color="foreground" href="#" className="flex flex-col items-center text-white">
+          <Link color="foreground" href="/plants" className="flex flex-col items-center text-white">
             <LeafIcon size={20} />
             <span className="text-xs">Plantas</span>
           </Link>

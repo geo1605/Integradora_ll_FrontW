@@ -165,10 +165,7 @@ export default function Register({ clear }: RegisterProps) {
         onChange={(e) => handleChange("password", e.target.value)}
         isInvalid={
           touchedFields.password &&
-          (formData.password.length < 8 ||
-            !/[A-Z]/.test(formData.password) ||
-            !/[a-z]/.test(formData.password) ||
-            !/[0-9]/.test(formData.password))
+          !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(formData.password)
         }
         errorMessage="Debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número"
       />
