@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AuthPage from "./features/auth/authPage";
-import {Home, ScreenPlants, UsersTable} from "./features/";
+import {Home, ScreenPlants, UsersTable, MonitoringScreen, HistoryScreen, InventoryScreen, ProfileScreen} from "./features/";
 import {PublicOnlyRoute, ProtectedRoute} from "./components/";
 import { HeroUIProvider } from "@heroui/react";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -45,6 +45,38 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <UsersTable />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/monitoring"
+                element={
+                  <ProtectedRoute>
+                    <MonitoringScreen />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/history"
+                element={
+                  <ProtectedRoute>
+                    <HistoryScreen />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/inventory"
+                element={
+                  <ProtectedRoute>
+                    <InventoryScreen />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfileScreen />
                   </ProtectedRoute>
                 }
               />

@@ -1,8 +1,12 @@
 import { Card, CardBody, CardHeader, Button } from '@heroui/react';
 import { Thermometer, Droplets, TestTube } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from "react-router-dom";
+
 
 export default function HistoryLectures() {
+
+  const navigate = useNavigate();
   const historyData = [
     {
       time: "14:30",
@@ -42,18 +46,18 @@ export default function HistoryLectures() {
     }
   ];
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'normal':
-        return 'bg-[var(--green)]';
-      case 'warning':
-        return 'bg-[var(--alert)]';
-      case 'danger':
-        return 'bg-[var(--alert)]';
-      default:
-        return 'bg-[var(--green)]';
-    }
+const getStatusColor = (status: 'normal' | 'warning' | 'danger'): string => {
+  const colorMap: Record<typeof status, string> = {
+    normal: 'bg-[var(--green)]',
+    warning: 'bg-[var(--alert)]',
+    danger: 'bg-[var(--alert)]',
   };
+
+  return colorMap[status];
+};
+
+
+
 
   // Animaciones
   const containerVariants = {
@@ -132,7 +136,7 @@ export default function HistoryLectures() {
                   <span className="text-xs text-[var(--text-color)]">{data.time}</span>
                   {data.showCircle && (
                     <motion.div 
-                      className={`w-4 h-4 rounded-full ${getStatusColor(data.status)}`}
+                      className={`w-4 h-4 rounded-full ${getStatusColor(data.status as 'normal' | 'warning' | 'danger')}`}
                       animate={{
                         scale: [1, 1.1, 1],
                         opacity: [0.8, 1, 0.8]
@@ -210,6 +214,7 @@ export default function HistoryLectures() {
             color="success"
             className="rounded-full text-sm text-white font-semibold"
             fullWidth
+            onClick={() => navigate("/history")}
           >
             Ver más
           </Button>

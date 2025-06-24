@@ -1,10 +1,9 @@
 // ✅ Register.tsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Form,
   Input,
   Button,
-  Checkbox,
 } from "@heroui/react";
 
 import PersonIcon from "@mui/icons-material/Person";

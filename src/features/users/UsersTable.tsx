@@ -1,14 +1,15 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
   Input, Button, DropdownTrigger, Dropdown, DropdownMenu, DropdownItem,
-  Chip, User, Pagination
+  Chip, User, Pagination, Modal, useDisclosure
 } from "@heroui/react";
 import SearchIcon from "@mui/icons-material/Search";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { getAllUsers } from "../../api/Users";
 import { SuudaiNavbar } from "../../components";
+import UpdateUser from "./UpdateUser";
 
 const columns = [
   { name: "Nombre", uid: "name", sortable: true },
@@ -32,6 +33,8 @@ const statusColorMap = {
 const INITIAL_VISIBLE_COLUMNS = ["name", "email", "role", "status", "actions"];
 
 export default function UserTable() {
+    const {isOpen, onOpen, onOpenChange} = useDisclosure();
+
   const [users, setUsers] = useState([]);
   const [filterValue, setFilterValue] = useState("");
   const [selectedKeys, setSelectedKeys] = useState(new Set([]));
@@ -40,6 +43,8 @@ export default function UserTable() {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [page, setPage] = useState(1);
   const [sortDescriptor, setSortDescriptor] = useState({ column: "name", direction: "ascending" });
+  const [selectedUser, setSelectedUser] = useState(null);
+
 
   useEffect(() => {
     getAllUsers()
@@ -114,7 +119,16 @@ export default function UserTable() {
                 </Button>
               </DropdownTrigger>
               <DropdownMenu>
-                <DropdownItem key="edit">Editar</DropdownItem>
+                <DropdownItem
+                  key="edit"
+                  onPress={() => {
+                    setSelectedUser(user);
+                    onOpen();
+                  }}
+                >
+                  Editar
+                </DropdownItem>
+
                 <DropdownItem key="delete" className="text-danger" color="danger">
                   Eliminar
                 </DropdownItem>
@@ -218,7 +232,7 @@ export default function UserTable() {
         isCompact
         showControls
         showShadow
-        color="primary"
+        color="success"
         page={page}
         total={pages}
         onChange={setPage}
@@ -248,10 +262,7 @@ export default function UserTable() {
         bottomContent={bottomContent}
         bottomContentPlacement="outside"
         classNames={{ wrapper: "max-h-[500px]" }}
-        selectedKeys={selectedKeys}
-        selectionMode="multiple"
         sortDescriptor={sortDescriptor}
-        onSelectionChange={setSelectedKeys}
         onSortChange={setSortDescriptor}
       >
         <TableHeader columns={headerColumns}>
@@ -271,6 +282,9 @@ export default function UserTable() {
           )}
         </TableBody>
       </Table>
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <UpdateUser />
+      </Modal>
     </>
   );
 }
