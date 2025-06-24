@@ -97,6 +97,8 @@ export default function Login({ clear }: { clear: boolean }) {
     onError: (error) => console.error("Error de Google:", error),
   });
 
+  const [isConsentGiven, setIsConsentGiven] = useState(false);
+
   return (
     <>
       <Form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
@@ -136,13 +138,30 @@ export default function Login({ clear }: { clear: boolean }) {
       </div>
 
       <Button
-        className="w-full"
+        className={`w-full border ${isConsentGiven
+            ? "border-green-500 text-green-700 hover:bg-green-100"
+            : "border-gray-300 text-gray-400 cursor-not-allowed bg-gray-100"
+          }`}
         variant="bordered"
-        onClick={() => login()}
+        disabled={!isConsentGiven}
+        onClick={() => isConsentGiven && login()}
         startContent={<img src="https://img.icons8.com/?size=512&id=17949&format=png" alt="Google" className="w-5 h-5" />}
       >
         Continuar con Google
       </Button>
+
+      <div className="flex items-start mb-2">
+        <input
+          type="checkbox"
+          id="consent"
+          checked={isConsentGiven}
+          onChange={(e) => setIsConsentGiven(e.target.checked)}
+          className="mr-2 mt-1"
+        />
+        <label htmlFor="consent" className="text-sm text-gray-700">
+          Autorizo el permiso para almacenar mis datos en servicios externos (Nuestro Sistema).
+        </label>
+      </div>
 
       <Button
         onPress={qrModal.onOpen}
