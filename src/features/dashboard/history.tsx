@@ -70,18 +70,18 @@ const getStatusColor = (status: 'normal' | 'warning' | 'danger'): string => {
     }
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 10
-      }
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      type: "spring" as const, // Explicitly type as Framer Motion's spring
+      stiffness: 100,
+      damping: 10
     }
-  };
+  }
+};
 
   const buttonVariants = {
     hover: {

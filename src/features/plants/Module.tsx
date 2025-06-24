@@ -24,7 +24,7 @@ export default function Module() {
     // Aquí puedes manejar la lógica para guardar los datos del formulario
     console.log('Planta:', planta);
     console.log('Estado:', estado);
-    setDrawerOpen(false); // Cerrar el drawer después de guardar
+    setDrawerOpen();
   };
 
   const handlePopoverClose = () => setPopoverOpen(); // Close Popover
@@ -93,7 +93,7 @@ export default function Module() {
             </Form>
           </DrawerBody>
           <DrawerFooter className="flex justify-between w-full">
-            <Button color="danger" variant="light" onClick={() => setDrawerOpen(false)}>
+            <Button color="danger" variant="light" onClick={() => setDrawerOpen()}>
               Cerrar
             </Button>
             <Button className="w-full text-white" color="success" onClick={handleSave}>

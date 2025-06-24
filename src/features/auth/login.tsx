@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import LoginQR from "./LoginQr";
 import { useGoogleLogin } from '@react-oauth/google';
 import { loginWithGoogle } from '../../api/authGoogle.api'
-import axios from "axios";
+
 
 
 
@@ -64,38 +64,46 @@ export default function Login({ clear }: { clear: boolean }) {
     }
   }, [clear]);
 
-  const login = useGoogleLogin({
-    flow: 'implicit',
-    scope: 'openid email profile',
-    onSuccess: async (tokenResponse) => {
-      try {
-        console.log("[1] Respuesta de Google recibida");
+interface GoogleTokenResponse {
+  id_token?: string;
+  access_token?: string;
+  error?: string;
+  error_description?: string;
+}
 
-        const tokenToSend = tokenResponse.id_token || tokenResponse.access_token;
-        if (!tokenToSend) throw new Error("No se recibió token válido");
+const login = useGoogleLogin({
+  flow: 'implicit',
+  scope: 'openid email profile',
+  onSuccess: async (tokenResponse: GoogleTokenResponse) => { // Especificamos el tipo personalizado
+    try {
+      console.log("[1] Respuesta de Google recibida");
 
-        console.log("[2] Enviando token al backend...");
-        const res = await loginWithGoogle(tokenToSend);
+      // Comprobamos si 'id_token' o 'access_token' están presentes en la respuesta
+      const tokenToSend = tokenResponse.id_token || tokenResponse.access_token;
+      if (!tokenToSend) throw new Error("No se recibió token válido");
 
-        console.log("[3] Respuesta del backend recibida:", res);
-        localStorage.setItem('token', res.token);
+      console.log("[2] Enviando token al backend...");
+      const res = await loginWithGoogle(tokenToSend);
 
-        console.log("[4] Token almacenado. Redirigiendo...");
+      console.log("[3] Respuesta del backend recibida:", res);
+      localStorage.setItem('token', res.token);
 
-        // Opción 1: Redirección forzada (funciona siempre)
-        window.location.assign('/');
+      console.log("[4] Token almacenado. Redirigiendo...");
 
-        // Opción 2: Si usas React Router (puede fallar si hay estado que bloquee)
-        // navigate('/', { replace: true });
+      // Opción 1: Redirección forzada (funciona siempre)
+      window.location.assign('/');
 
-      } catch (error) {
-        console.error("Error completo:", error);
-        const errorMsg = (error instanceof Error) ? error.message : String(error);
-        alert(`Error: ${errorMsg}`);
-      }
-    },
-    onError: (error) => console.error("Error de Google:", error),
-  });
+      // Opción 2: Si usas React Router (puede fallar si hay estado que bloquee)
+      // navigate('/', { replace: true });
+
+    } catch (error) {
+      console.error("Error completo:", error);
+      const errorMsg = (error instanceof Error) ? error.message : String(error);
+      alert(`Error: ${errorMsg}`);
+    }
+  },
+  onError: (error) => console.error("Error de Google:", error),
+});
 
   const [isConsentGiven, setIsConsentGiven] = useState(false);
 

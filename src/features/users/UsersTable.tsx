@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type {Key} from 'react'
 import {
   Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
   Input, Button, DropdownTrigger, Dropdown, DropdownMenu, DropdownItem,
@@ -10,6 +11,19 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { getAllUsers } from "../../api/Users";
 import { SuudaiNavbar } from "../../components";
 import UpdateUser from "./UpdateUser";
+
+interface User {
+  _id: string;
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  email: string;
+  phoneNumber?: string;
+  role: string;
+  status: boolean;
+}
+
+
 
 const columns = [
   { name: "Nombre", uid: "name", sortable: true },
@@ -25,26 +39,27 @@ const statusOptions = [
   { name: "Inactivo", uid: "false" }
 ];
 
-const statusColorMap = {
-  true: "success",
-  false: "danger"
+const statusColorMap: Record<string, "success" | "danger"> = {
+  "true": "success",
+  "false": "danger"
 };
 
 const INITIAL_VISIBLE_COLUMNS = ["name", "email", "role", "status", "actions"];
 
 export default function UserTable() {
-    const {isOpen, onOpen, onOpenChange} = useDisclosure();
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [filterValue, setFilterValue] = useState("");
-  const [selectedKeys, setSelectedKeys] = useState(new Set([]));
   const [visibleColumns, setVisibleColumns] = useState(new Set(INITIAL_VISIBLE_COLUMNS));
   const [statusFilter, setStatusFilter] = useState("all");
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [page, setPage] = useState(1);
-  const [sortDescriptor, setSortDescriptor] = useState({ column: "name", direction: "ascending" });
-  const [selectedUser, setSelectedUser] = useState(null);
-
+  const [sortDescriptor, setSortDescriptor] = useState({
+    column: "name" as keyof User,
+    direction: "ascending" as "ascending" | "descending"
+  });
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   useEffect(() => {
     getAllUsers()
@@ -83,25 +98,25 @@ export default function UserTable() {
     });
   }, [paginatedItems, sortDescriptor]);
 
-  const renderCell = (user, columnKey) => {
+  const renderCell = (user: User, columnKey: string) => {
     switch (columnKey) {
       case "name":
         return (
           <User
-            name={`${user.firstName} ${user.middleName} ${user.lastName}`}
+            name={`${user.firstName} ${user.middleName || ''} ${user.lastName}`}
             description={user.email}
           />
         );
       case "email":
         return user.email;
       case "phoneNumber":
-        return user.phoneNumber;
+        return user.phoneNumber || "-";
       case "role":
         return <span className="capitalize">{user.role}</span>;
       case "status":
         return (
           <Chip
-            color={statusColorMap[user.status]}
+            color={statusColorMap[String(user.status)]}
             className="capitalize"
             size="sm"
             variant="flat"
@@ -128,7 +143,6 @@ export default function UserTable() {
                 >
                   Editar
                 </DropdownItem>
-
                 <DropdownItem key="delete" className="text-danger" color="danger">
                   Eliminar
                 </DropdownItem>
@@ -137,9 +151,18 @@ export default function UserTable() {
           </div>
         );
       default:
-        return user[columnKey] || "-";
+        return user[columnKey as keyof User]?.toString() || "-";
     }
   };
+
+  const statusItems = useMemo(() => (
+    <>
+      <DropdownItem key="all">Todos</DropdownItem>
+      {statusOptions.map((status) => (
+        <DropdownItem key={status.uid}>{status.name}</DropdownItem>
+      ))}
+    </>
+  ), []);
 
   const topContent = (
     <div className="flex flex-col gap-4">
@@ -165,15 +188,12 @@ export default function UserTable() {
               selectionMode="single"
               selectedKeys={new Set([statusFilter])}
               onSelectionChange={(keys) => {
-                const key = Array.from(keys)[0];
+                const key = Array.from(keys)[0] as string;
                 setStatusFilter(key);
                 setPage(1);
               }}
             >
-              <DropdownItem key="all">Todos</DropdownItem>
-              {statusOptions.map((status) => (
-                <DropdownItem key={status.uid}>{status.name}</DropdownItem>
-              ))}
+              {statusItems}
             </DropdownMenu>
           </Dropdown>
 
@@ -188,14 +208,13 @@ export default function UserTable() {
               disallowEmptySelection
               closeOnSelect={false}
               selectedKeys={visibleColumns}
-              onSelectionChange={setVisibleColumns}
+              onSelectionChange={(keys) => setVisibleColumns(new Set(keys as Set<string>))}
             >
               {columns.map((col) => (
                 <DropdownItem key={col.uid}>{col.name}</DropdownItem>
               ))}
             </DropdownMenu>
           </Dropdown>
-
         </div>
       </div>
 
@@ -224,9 +243,7 @@ export default function UserTable() {
   const bottomContent = (
     <div className="py-2 px-2 flex justify-between items-center">
       <span className="w-[30%] text-small text-default-400">
-        {selectedKeys === "all"
-          ? "Todos los elementos seleccionados"
-          : `${selectedKeys.size} de ${filteredItems.length} seleccionados`}
+        {filteredItems.length} usuarios
       </span>
       <Pagination
         isCompact
@@ -252,6 +269,13 @@ export default function UserTable() {
     return columns.filter(col => visibleColumns.has(col.uid));
   }, [visibleColumns]);
 
+  const handleSortChange = (descriptor: { column: Key, direction: 'ascending' | 'descending' }) => {
+    setSortDescriptor({
+      column: descriptor.column as keyof User,
+      direction: descriptor.direction
+    });
+  };
+
   return (
     <>
       <SuudaiNavbar />
@@ -263,7 +287,7 @@ export default function UserTable() {
         bottomContentPlacement="outside"
         classNames={{ wrapper: "max-h-[500px]" }}
         sortDescriptor={sortDescriptor}
-        onSortChange={setSortDescriptor}
+        onSortChange={handleSortChange}
       >
         <TableHeader columns={headerColumns}>
           {(col) => (
@@ -276,14 +300,14 @@ export default function UserTable() {
           {(item) => (
             <TableRow key={item._id}>
               {(columnKey) => (
-                <TableCell>{renderCell(item, columnKey)}</TableCell>
+                <TableCell>{renderCell(item, columnKey as string)}</TableCell>
               )}
             </TableRow>
           )}
         </TableBody>
       </Table>
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-        <UpdateUser />
+        {selectedUser && <UpdateUser user={selectedUser} />}
       </Modal>
     </>
   );

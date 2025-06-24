@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Login from './login';
 import Register from './register';
 import fondo from '../../assets/fondo_auth.png';

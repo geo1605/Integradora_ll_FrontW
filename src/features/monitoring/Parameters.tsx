@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Card, Button, Input, toast } from '@heroui/react';
+import { Card, Button, Input } from '@heroui/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Thermometer, Droplets, Waves, CircleAlert, Save } from "lucide-react";
+import { addToast } from '@heroui/react';  // Usamos addToast de Hero UI
 
 type ParameterField = 'temperature' | 'ph' | 'humidity' | 'waterLevel';
 
@@ -18,17 +19,15 @@ interface Settings {
   isActive: boolean;
 }
 
-// Estilo base para íconos redondos
 const iconWrapper = "w-10 h-10 flex items-center justify-center rounded-full shadow-md";
 
-// Íconos con colores y animaciones
-const icons: Record<ParameterField, JSX.Element> = {
+const icons: Record<ParameterField, React.ReactNode> = {
   temperature: (
     <motion.div
       animate={{ scale: [1, 1.1, 1] }}
       transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
       className={iconWrapper}
-      style={{ backgroundColor: 'rgba(251, 146, 60, 0.2)' }} // naranja suave
+      style={{ backgroundColor: 'rgba(251, 146, 60, 0.2)' }}
     >
       <Thermometer className="text-orange-600 w-5 h-5" />
     </motion.div>
@@ -37,7 +36,7 @@ const icons: Record<ParameterField, JSX.Element> = {
     <motion.div
       transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
       className={iconWrapper}
-      style={{ backgroundColor: 'rgba(192, 132, 252, 0.2)' }} // lila suave
+      style={{ backgroundColor: 'rgba(192, 132, 252, 0.2)' }}
     >
       <span className="text-purple-700 font-bold text-sm">pH</span>
     </motion.div>
@@ -93,12 +92,20 @@ const ParameterSettings = () => {
     const newMax = parseFloat(tempValues.max);
 
     if (isNaN(newMin) || isNaN(newMax)) {
-      toast.error('Los valores deben ser números');
+      addToast({
+        title: 'Error',
+        description: 'Los valores deben ser números',
+        color: 'danger',
+      });  // Usamos addToast de Hero UI para mostrar el error
       return;
     }
 
     if (newMin >= newMax) {
-      toast.error('El valor mínimo debe ser menor al máximo');
+      addToast({
+        title: 'Error',
+        description: 'El valor mínimo debe ser menor al máximo',
+        color: 'danger',
+      });
       return;
     }
 
@@ -107,7 +114,11 @@ const ParameterSettings = () => {
       [editing]: { min: newMin, max: newMax }
     }));
 
-    toast.success('Configuración actualizada');
+    addToast({
+      title: 'Éxito',
+      description: 'Configuración actualizada',
+      color: 'success',
+    });  // Usamos addToast de Hero UI para mostrar el éxito
     setEditing(null);
   };
 

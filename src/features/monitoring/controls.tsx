@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { Easing } from "framer-motion";
 
 const getIconAnimation = (iconName: string, isOn: boolean) => {
   if (!isOn) return {};
@@ -19,7 +20,7 @@ const getIconAnimation = (iconName: string, isOn: boolean) => {
         transition: {
           repeat: Infinity,
           duration: 2,
-          ease: "linear"
+          ease: "linear" as Easing
         }
       };
     case "Droplet":
@@ -28,7 +29,7 @@ const getIconAnimation = (iconName: string, isOn: boolean) => {
         transition: {
           repeat: Infinity,
           duration: 1.5,
-          ease: "easeInOut"
+          ease: "easeInOut" as Easing
         }
       };
     case "Lightbulb":
@@ -47,7 +48,7 @@ const getIconAnimation = (iconName: string, isOn: boolean) => {
         transition: {
           repeat: Infinity,
           duration: 1.8,
-          ease: "easeInOut"
+          ease: "easeInOut" as Easing
         }
       };
     default:

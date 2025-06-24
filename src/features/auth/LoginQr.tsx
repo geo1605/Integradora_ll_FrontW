@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import { v4 as uuidv4 } from "uuid";
 import { createQRSession, getQRStatus } from "../../api/qr.api"; // nueva importación

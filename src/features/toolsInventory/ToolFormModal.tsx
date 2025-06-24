@@ -13,8 +13,26 @@ import {
   Checkbox,
 } from "@heroui/react";
 
-export default function ToolFormModal({ isOpen, onClose, initialData, onSubmit }) {
-  const [formData, setFormData] = React.useState({
+interface ToolData {
+  name: string;
+  description: string;
+  status: boolean;
+}
+
+interface ToolFormModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  initialData?: Partial<ToolData>;
+  onSubmit: (data: ToolData) => void;
+}
+
+export default function ToolFormModal({ 
+  isOpen, 
+  onClose, 
+  initialData, 
+  onSubmit 
+}: ToolFormModalProps) {
+  const [formData, setFormData] = React.useState<ToolData>({
     name: "",
     description: "Activo",
     status: true,
@@ -36,7 +54,7 @@ export default function ToolFormModal({ isOpen, onClose, initialData, onSubmit }
     }
   }, [initialData]);
 
-  const handleChange = (key, value) => {
+  const handleChange = (key: keyof ToolData, value: any) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -79,9 +97,9 @@ export default function ToolFormModal({ isOpen, onClose, initialData, onSubmit }
                 color="success"
                 isSelected={formData.status}
                 onValueChange={(v) => handleChange("status", v)}
-                >
+              >
                 Disponible
-                </Checkbox>
+              </Checkbox>
             </ModalBody>
             <ModalFooter>
               <Button variant="light" onPress={onCloseInner}>

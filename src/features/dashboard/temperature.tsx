@@ -7,20 +7,14 @@ export default function Temperature() {
 
   // Determinar color según la temperatura
   let iconColor = "text-[var(--green)]";
-  let progressColor = "success";
-  let bgGradient = "from-green-100 to-green-50";
-  let progressClass = "bg-green-500";
+  let progressColor: "default" | "success" | "primary" | "secondary" | "warning" | "danger" = "success"; // Especificar el tipo correcto
 
   if (temperature < 10) {
     iconColor = "text-[var(--blue)]";
     progressColor = "primary";
-    bgGradient = "from-blue-100 to-blue-50";
-    progressClass = "bg-blue-500";
   } else if (temperature > 30) {
     iconColor = "text-[var(--alert)]";
     progressColor = "danger";
-    bgGradient = "from-red-100 to-red-50";
-    progressClass = "bg-red-500";
   }
 
   // Calcular valor de progreso (ajustado para rango 0-40°C)

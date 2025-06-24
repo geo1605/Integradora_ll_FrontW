@@ -1,4 +1,5 @@
 // ToolsTable.tsx
+import type { ChipProps } from "@heroui/react";
 import React from "react";
 import {
   Table,
@@ -17,9 +18,30 @@ import {
   Input,
   useDisclosure,
 } from "@heroui/react";
-import ToolFormModal from "./ToolFormModal";
+import ToolFormModal from './ToolFormModal'
 
-const initialTools = [
+interface Tool {
+  id: number;
+  name: string;
+  description: "Activo" | "EnUso" | "Mantenimiento" | "Deshabilitado";
+  status: boolean;
+  createdAt: Date;
+}
+
+interface ToolColumn {
+  name: string;
+  uid: keyof Tool | 'actions';
+  sortable?: boolean;
+}
+
+const statusColorMap = {
+  Activo: "success",
+  EnUso: "primary",
+  Mantenimiento: "warning",
+  Deshabilitado: "danger",
+} as const;
+
+const initialTools: Tool[] = [
   {
     id: 1,
     name: "Drill",
@@ -50,7 +72,13 @@ const initialTools = [
   },
 ];
 
-const toolColumns = [
+interface ToolData {
+  name: string;
+  description: string;
+  status: boolean;
+}
+
+const toolColumns: ToolColumn[] = [
   { name: "NOMBRE", uid: "name", sortable: true },
   { name: "DESCRIPCIÓN", uid: "description", sortable: true },
   { name: "ESTADO", uid: "status", sortable: true },
@@ -58,20 +86,13 @@ const toolColumns = [
   { name: "ACCIONES", uid: "actions" },
 ];
 
-const statusColorMap = {
-  Activo: "success",
-  EnUso: "primary",
-  Mantenimiento: "warning",
-  Deshabilitado: "danger",
-};
-
 export default function ToolsTable() {
-  const [tools, setTools] = React.useState(initialTools);
+  const [tools, setTools] = React.useState<Tool[]>(initialTools);
   const [filter, setFilter] = React.useState("");
   const [page, setPage] = React.useState(1);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [editingTool, setEditingTool] = React.useState(null);
+  const [editingTool, setEditingTool] = React.useState<Tool | null>(null);
 
   const filteredTools = tools.filter((tool) =>
     tool.name.toLowerCase().includes(filter.toLowerCase())
@@ -83,26 +104,32 @@ export default function ToolsTable() {
     page * rowsPerPage
   );
 
-  const handleDelete = (id) => {
+  const handleDelete = (id: number) => {
     setTools((prev) => prev.filter((tool) => tool.id !== id));
   };
 
-  const handleSave = (data) => {
+  const handleSave = (data: ToolData) => {
+    const toolData: Omit<Tool, 'id' | 'createdAt'> = {
+      name: data.name,
+      description: data.description as Tool['description'],
+      status: data.status
+    };
+
     if (editingTool) {
       setTools((prev) =>
-        prev.map((t) => (t.id === editingTool.id ? { ...t, ...data } : t))
+        prev.map((t) => (t.id === editingTool.id ? { ...t, ...toolData } : t))
       );
     } else {
       setTools((prev) => [
-        { ...data, id: Date.now(), createdAt: new Date() },
+        { ...toolData, id: Date.now(), createdAt: new Date() },
         ...prev,
       ]);
     }
     setEditingTool(null);
   };
 
-  const renderCell = (item, key) => {
-    const value = item[key];
+  const renderCell = (item: Tool, key: keyof Tool | 'actions') => {
+    const value = item[key as keyof Tool];
 
     switch (key) {
       case "status":
@@ -113,7 +140,10 @@ export default function ToolsTable() {
         );
       case "description":
         return (
-          <Chip color={statusColorMap[item.description]} size="sm">
+          <Chip 
+            color={statusColorMap[item.description] as ChipProps['color']} 
+            size="sm"
+          >
             {item.description}
           </Chip>
         );
@@ -146,9 +176,9 @@ export default function ToolsTable() {
           </Dropdown>
         );
       case "createdAt":
-        return new Date(value).toLocaleDateString();
+        return new Date(value as Date).toLocaleDateString();
       default:
-        return value;
+        return value as React.ReactNode;
     }
   };
 
@@ -198,7 +228,11 @@ export default function ToolsTable() {
         <TableBody emptyContent={"No hay herramientas"} items={pagedTools}>
           {(item) => (
             <TableRow key={item.id}>
-              {(col) => <TableCell>{renderCell(item, col)}</TableCell>}
+              {(columnKey) => (
+                <TableCell>
+                  {renderCell(item, columnKey as keyof Tool | 'actions')}
+                </TableCell>
+              )}
             </TableRow>
           )}
         </TableBody>
@@ -219,7 +253,7 @@ export default function ToolsTable() {
       <ToolFormModal
         isOpen={isOpen}
         onClose={onOpenChange}
-        initialData={editingTool}
+        initialData={editingTool || undefined}
         onSubmit={handleSave}
       />
     </div>
