@@ -139,8 +139,8 @@ export default function Login({ clear }: { clear: boolean }) {
 
       <Button
         className={`w-full border ${isConsentGiven
-            ? "border-green-500 text-green-700 hover:bg-green-100"
-            : "border-gray-300 text-gray-400 cursor-not-allowed bg-gray-100"
+          ? "border-green-500 text-green-700 hover:bg-green-100"
+          : "border-gray-300 text-gray-400 cursor-not-allowed bg-gray-100"
           }`}
         variant="bordered"
         disabled={!isConsentGiven}
@@ -150,7 +150,7 @@ export default function Login({ clear }: { clear: boolean }) {
         Continuar con Google
       </Button>
 
-      <div className="flex items-start mb-2">
+      <div className="flex items-start mb-2 text-sm text-gray-700">
         <input
           type="checkbox"
           id="consent"
@@ -158,8 +158,16 @@ export default function Login({ clear }: { clear: boolean }) {
           onChange={(e) => setIsConsentGiven(e.target.checked)}
           className="mr-2 mt-1"
         />
-        <label htmlFor="consent" className="text-sm text-gray-700">
-          Autorizo el permiso para almacenar mis datos en servicios externos (Nuestro Sistema).
+        <label htmlFor="consent" className="flex flex-col">
+          <span>Autorizo el uso de mis datos por sistemas externos (como Google).</span>
+          <a
+            href="/privacy-policy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:underline mt-1"
+          >
+            Ver política de privacidad
+          </a>
         </label>
       </div>
 

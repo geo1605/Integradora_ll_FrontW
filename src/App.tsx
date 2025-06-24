@@ -5,6 +5,7 @@ import {PublicOnlyRoute, ProtectedRoute} from "./components/";
 import { HeroUIProvider } from "@heroui/react";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/themeContext";
+import PrivacyPolicy from "./features/auth/PrivacyPolicy";
 
 function App() {
   return (
@@ -40,6 +41,11 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+              path='/privacy-policy'
+              element={<PrivacyPolicy/>}
+              />
+
               <Route
                 path="/users"
                 element={
