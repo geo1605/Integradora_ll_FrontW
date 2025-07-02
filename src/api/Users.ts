@@ -6,7 +6,7 @@ export const getAllUsers = async () => {
     throw new Error("Token no disponible");
   }
 
-  const res = await fetch(`${API_URL}/api/auth/getAllUsers`, {
+  const res = await fetch(`${API_URL}/api/users/getAllUsers`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -34,7 +34,7 @@ export const registerUser = async (userData: {
   confirmPassword: string;
 }) => {
   const API_URL = import.meta.env.VITE_API_URL;
-  const res = await fetch(`${API_URL}/api/auth/createUser`, {
+  const res = await fetch(`${API_URL}/api/users/createUser`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(userData),
