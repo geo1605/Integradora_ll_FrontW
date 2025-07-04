@@ -9,7 +9,6 @@ import SearchIcon from "@mui/icons-material/Search";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { getAllUsers } from "../../api/Users";
-import { SuudaiNavbar } from "../../components";
 import UpdateUser from "./UpdateUser";
 
 interface User {
@@ -278,7 +277,7 @@ export default function UserTable() {
 
   return (
     <>
-      <SuudaiNavbar />
+       
       <Table
         isHeaderSticky
         aria-label="Tabla avanzada de usuarios"

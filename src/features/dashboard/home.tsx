@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import SuudaiNavbar from "../../components/NavegationBar";
 import {Card} from "@heroui/react";
 import Tank from "./tank/Tank";
 import Temperature from "./temperature";
@@ -11,7 +10,6 @@ export default function Home() {
   const [level] = useState(60); // Nivel inicial
   return (
     <>
-      <SuudaiNavbar />
 
       <div className="flex flex-col md:flex-row p-4 gap-6">
         {/* Columna 1: fija */}

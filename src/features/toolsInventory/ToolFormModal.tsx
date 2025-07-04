@@ -1,4 +1,3 @@
-// ToolFormModal.tsx
 import React from "react";
 import {
   Modal,
@@ -13,9 +12,11 @@ import {
   Checkbox,
 } from "@heroui/react";
 
+type ToolDescription = "Active" | "InUse" | "Maintenance" | "Disabled";
+
 interface ToolData {
-  name: string;
-  description: string;
+  toolName: string;
+  description: ToolDescription;
   status: boolean;
 }
 
@@ -26,6 +27,13 @@ interface ToolFormModalProps {
   onSubmit: (data: ToolData) => void;
 }
 
+const descriptionOptions = [
+  { value: "Active", label: "Activo" },
+  { value: "InUse", label: "En uso" },
+  { value: "Maintenance", label: "Mantenimiento" },
+  { value: "Disabled", label: "Deshabilitado" }
+];
+
 export default function ToolFormModal({ 
   isOpen, 
   onClose, 
@@ -33,32 +41,37 @@ export default function ToolFormModal({
   onSubmit 
 }: ToolFormModalProps) {
   const [formData, setFormData] = React.useState<ToolData>({
-    name: "",
-    description: "Activo",
+    toolName: "",
+    description: "Active",
     status: true,
   });
 
   React.useEffect(() => {
     if (initialData) {
       setFormData({
-        name: initialData.name || "",
-        description: initialData.description || "Activo",
+        toolName: initialData.toolName || "",
+        description: initialData.description || "Active",
         status: initialData.status ?? true,
       });
     } else {
       setFormData({
-        name: "",
-        description: "Activo",
+        toolName: "",
+        description: "Active",
         status: true,
       });
     }
-  }, [initialData]);
+  }, [initialData, isOpen]);
 
   const handleChange = (key: keyof ToolData, value: any) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSubmit = () => {
+    if (!formData.toolName.trim()) {
+      alert("El nombre de la herramienta es requerido");
+      return;
+    }
+    
     onSubmit(formData);
     onClose();
   };
@@ -76,21 +89,22 @@ export default function ToolFormModal({
                 isRequired
                 label="Nombre"
                 placeholder="Ej. Taladro"
-                value={formData.name}
-                onValueChange={(v) => handleChange("name", v)}
+                value={formData.toolName}
+                onValueChange={(v) => handleChange("toolName", v)}
               />
 
               <Select
-                label="Descripción"
+                label="Estado"
                 selectedKeys={[formData.description]}
                 onSelectionChange={(keys) =>
-                  handleChange("description", Array.from(keys)[0])
+                  handleChange("description", Array.from(keys)[0] as ToolDescription)
                 }
               >
-                <SelectItem key="Activo">Activo</SelectItem>
-                <SelectItem key="EnUso">En uso</SelectItem>
-                <SelectItem key="Mantenimiento">Mantenimiento</SelectItem>
-                <SelectItem key="Deshabilitado">Deshabilitado</SelectItem>
+                {descriptionOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </Select>
 
               <Checkbox

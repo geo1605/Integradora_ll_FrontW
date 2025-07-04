@@ -1,22 +1,30 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AuthPage from "./features/auth/authPage";
-import {Home, ScreenPlants, UsersTable, MonitoringScreen, HistoryScreen, InventoryScreen, ProfileScreen} from "./features/";
-import {PublicOnlyRoute, ProtectedRoute} from "./components/";
+import {
+  Home,
+  ScreenPlants,
+  UsersTable,
+  MonitoringScreen,
+  HistoryScreen,
+  InventoryScreen,
+  ProfileScreen
+} from "./features/";
+import { PublicOnlyRoute, ProtectedRoute } from "./components/";
 import { HeroUIProvider } from "@heroui/react";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/themeContext";
 import PrivacyPolicy from "./features/auth/PrivacyPolicy";
+import Main from "./features/main"; // <-- asegúrate de que el path sea correcto
 
 function App() {
   return (
     <HeroUIProvider>
-      {/* Envuelve aplicación con el AuthProvider */}
       <AuthProvider>
-        {/* Envuelve aplicación con el ThemeProvider */}
-        <ThemeProvider> 
-          {/* Configura las rutas de la aplicación */}
+        <ThemeProvider>
           <BrowserRouter>
             <Routes>
+
+              {/* Ruta pública */}
               <Route
                 path="/auth"
                 element={
@@ -25,67 +33,27 @@ function App() {
                   </PublicOnlyRoute>
                 }
               />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Home />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/plants"
-                element={
-                  <ProtectedRoute>
-                    <ScreenPlants />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-              path='/privacy-policy'
-              element={<PrivacyPolicy/>}
-              />
 
+              {/* Ruta sin navbar */}
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+
+              {/* Rutas protegidas con navbar (Main) */}
               <Route
-                path="/users"
                 element={
                   <ProtectedRoute>
-                    <UsersTable />
+                    <Main />
                   </ProtectedRoute>
                 }
-              />
-              <Route
-                path="/monitoring"
-                element={
-                  <ProtectedRoute>
-                    <MonitoringScreen />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/history"
-                element={
-                  <ProtectedRoute>
-                    <HistoryScreen />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/inventory"
-                element={
-                  <ProtectedRoute>
-                    <InventoryScreen />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <ProfileScreen />
-                  </ProtectedRoute>
-                }
-              />
+              >
+                <Route path="/" element={<Home />} />
+                <Route path="/plants" element={<ScreenPlants />} />
+                <Route path="/users" element={<UsersTable />} />
+                <Route path="/monitoring" element={<MonitoringScreen />} />
+                <Route path="/history" element={<HistoryScreen />} />
+                <Route path="/inventory" element={<InventoryScreen />} />
+                <Route path="/profile" element={<ProfileScreen />} />
+              </Route>
+
             </Routes>
           </BrowserRouter>
         </ThemeProvider>

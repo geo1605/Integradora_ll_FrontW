@@ -1,45 +1,76 @@
 import { Button } from "@heroui/react";
 
-export default function PopOverPlant({ onEditClick }: { onEditClick: () => void }) {
+export default function PopOverPlant({
+  name,
+  ubication,
+  plantName,
+  status,
+  createDate,
+  onEditClick,
+  onDeleteClick
+}: {
+  name: string;
+  ubication?: string;
+  plantName?: string;
+  status?: string;
+  createDate?: string;
+  onEditClick: () => void;
+  onDeleteClick: () => void;
+}) {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '-';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch (e) {
+      return '-';
+    }
+  };
+
   return (
     <div className="py-3 w-64">
-      {/* Encabezado */}
       <div className="flex justify-between items-start mb-2">
         <span className="text-5xl font-bold" style={{ color: "var(--blue)" }}>
-          BI-3
+          {name}
         </span>
         <span className="text-xs" style={{ color: "var(--text-color)" }}>
-          Fecha C: 20/5/2025
+          Fecha C: {formatDate(createDate)}
         </span>
       </div>
 
-      {/* Detalles */}
       <div className="mb-1">
         <p className="text-sm font-semibold" style={{ color: "var(--text-color)" }}>
-          Planta: <span className="font-normal">Tomate</span>
+          Ubicación: <span className="font-normal">{ubication || "Sin ubicación"}</span>
+        </p>
+        <p className="text-sm font-semibold" style={{ color: "var(--text-color)" }}>
+          Planta: <span className="font-normal">{plantName || "Sin planta"}</span>
         </p>
         <p className="text-sm font-semibold" style={{ color: "var(--text-color)" }}>
           Estado:{" "}
           <span className="font-bold" style={{ color: "var(--green)" }}>
-            Sano
+            {status || "-"}
           </span>
         </p>
       </div>
 
-      {/* Botones */}
       <div className="flex justify-between mt-3 gap-2">
-        <Button
-          color="success"
-          className="w-full text-sm font-semibold"
-          style={{ color: "var(--text-color)" }}
-          onClick={onEditClick} // Trigger the Edit functionality
+        <Button 
+          color="success" 
+          className="w-full text-sm font-semibold" 
+          style={{ color: "var(--text-color)" }} 
+          onClick={onEditClick}
         >
           Editar
         </Button>
-        <Button
-          color="danger"
-          className="w-full text-sm font-semibold"
+        <Button 
+          color="danger" 
+          className="w-full text-sm font-semibold" 
           style={{ color: "var(--text-color)" }}
+          onClick={onDeleteClick}
         >
           Eliminar
         </Button>
