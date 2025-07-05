@@ -1,10 +1,11 @@
 import axios from "axios";
+import { useAuthStore } from "../store/auth.store";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const getAllModules = async () => {
   try {
-    const token = localStorage.getItem("token"); 
+    const token = useAuthStore.getState().token;
     const response = await axios.get(`${API_URL}/api/botanic/getAll/Inventory`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -27,7 +28,7 @@ export const createModule = async (moduleData: {
   }>;
 }) => {
   try {
-    const token = localStorage.getItem("token");
+    const token = useAuthStore.getState().token;
     const response = await axios.post(`${API_URL}/api/botanic/createBotanic`, moduleData, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -58,7 +59,7 @@ export const createModule = async (moduleData: {
 
 export const deleteModule = async (moduleId: string) => {
   try {
-    const token = localStorage.getItem("token");
+    const token = useAuthStore.getState().token;
     const response = await axios.delete(
       `${API_URL}/api/botanic/deletePlant/${moduleId}`,
       {
@@ -101,7 +102,7 @@ export const updateModule = async (
   }
 ) => {
   try {
-    const token = localStorage.getItem("token");
+    const token = useAuthStore.getState().token;
     const response = await axios.put(
       `${API_URL}/api/botanic/updateInventory/data/${moduleId}`,
       updateData,

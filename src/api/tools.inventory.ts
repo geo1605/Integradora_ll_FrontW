@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+import { useAuthStore } from '../store/auth.store'; 
+
 const API_URL =   import.meta.env.VITE_API_URL;
 
 export const createTool = async (toolData: {
@@ -7,7 +9,7 @@ export const createTool = async (toolData: {
   description: string;
 }) => {
   try {
-    const token = localStorage.getItem("token");
+    const token = useAuthStore.getState().token;
     const response = await axios.post(`${API_URL}/api/toolInventory/new`, toolData, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -35,7 +37,7 @@ export const createTool = async (toolData: {
 
 export const getAllTools = async () => {
   try {
-    const token = localStorage.getItem("token");
+    const token = useAuthStore.getState().token;
     const response = await axios.get(`${API_URL}/api/toolInventory/get-all`, {
       headers: {
         Authorization: `Bearer ${token}`
@@ -62,7 +64,7 @@ export const getAllTools = async () => {
 
 export const getToolById = async (id: string) => {
   try {
-    const token = localStorage.getItem("token");
+    const token = useAuthStore.getState().token;
     const response = await axios.get(`${API_URL}/api/toolInventory/get-one/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`
@@ -92,7 +94,7 @@ export const updateTool = async (id: string, toolData: {
   description?: string;
 }) => {
   try {
-    const token = localStorage.getItem("token");
+    const token = useAuthStore.getState().token;
     const response = await axios.put(`${API_URL}/api/toolInventory/update/${id}`, toolData, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -122,7 +124,7 @@ export const updateTool = async (id: string, toolData: {
 
 export const deleteTool = async (id: string) => {
   try {
-    const token = localStorage.getItem("token");
+    const token = useAuthStore.getState().token;
     const response = await axios.delete(`${API_URL}/api/toolInventory/delete/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`

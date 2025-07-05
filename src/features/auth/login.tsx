@@ -1,21 +1,21 @@
 import { useState, useEffect } from "react";
+
 import {
   Form, Input, Button, Modal, ModalContent, ModalHeader,
   ModalBody, ModalFooter, useDisclosure
 } from "@heroui/react";
+
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import QrCodeOutlinedIcon from "@mui/icons-material/QrCodeOutlined";
+import LoginQR from "./LoginQr";
+
 
 import { loginUser } from "../../api/auth.users";
-import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import LoginQR from "./LoginQr";
 import { useGoogleLogin } from '@react-oauth/google';
 import { loginWithGoogle } from '../../api/authGoogle.api'
-
-
-
+import { useAuthStore } from "../../store/auth.store";
 
 
 export default function Login({ clear }: { clear: boolean }) {
@@ -29,7 +29,7 @@ export default function Login({ clear }: { clear: boolean }) {
   const loginSuccessModal = useDisclosure();
   const qrModal = useDisclosure();
 
-  const { setToken } = useAuth();
+  const { setToken } = useAuthStore();
   const navigate = useNavigate();
 
   const togglePassword = () => setShowPassword(!showPassword);
@@ -37,8 +37,12 @@ export default function Login({ clear }: { clear: boolean }) {
   const handleLogin = async () => {
     try {
       const data = await loginUser(email, password);
-      if (data.token || data.accessToken) {
-        setToken(data.token || data.accessToken);
+      const token = data.token || data.accessToken;
+
+      if (token) {
+        setToken(token); // guarda en zustand
+        sessionStorage.setItem("token", token); 
+
         loginSuccessModal.onOpen();
         setTimeout(() => {
           navigate("/");
@@ -53,6 +57,7 @@ export default function Login({ clear }: { clear: boolean }) {
     }
   };
 
+
   useEffect(() => {
     if (clear) {
       setEmail("");
@@ -64,37 +69,26 @@ export default function Login({ clear }: { clear: boolean }) {
     }
   }, [clear]);
 
-interface GoogleTokenResponse {
-  id_token?: string;
-  access_token?: string;
-  error?: string;
-  error_description?: string;
-}
+  interface GoogleTokenResponse {
+    id_token?: string;
+    access_token?: string;
+    error?: string;
+    error_description?: string;
+  }
 
 const login = useGoogleLogin({
   flow: 'implicit',
   scope: 'openid email profile',
-  onSuccess: async (tokenResponse: GoogleTokenResponse) => { // Especificamos el tipo personalizado
+  onSuccess: async (tokenResponse: GoogleTokenResponse) => {
     try {
-      console.log("[1] Respuesta de Google recibida");
-
-      // Comprobamos si 'id_token' o 'access_token' están presentes en la respuesta
       const tokenToSend = tokenResponse.id_token || tokenResponse.access_token;
       if (!tokenToSend) throw new Error("No se recibió token válido");
 
-      console.log("[2] Enviando token al backend...");
       const res = await loginWithGoogle(tokenToSend);
 
-      console.log("[3] Respuesta del backend recibida:", res);
-      localStorage.setItem('token', res.token);
-
-      console.log("[4] Token almacenado. Redirigiendo...");
-
-      // Opción 1: Redirección forzada (funciona siempre)
+      setToken(res.token);                            
+      sessionStorage.setItem('token', res.token);    
       window.location.assign('/');
-
-      // Opción 2: Si usas React Router (puede fallar si hay estado que bloquee)
-      // navigate('/', { replace: true });
 
     } catch (error) {
       console.error("Error completo:", error);
@@ -104,6 +98,7 @@ const login = useGoogleLogin({
   },
   onError: (error) => console.error("Error de Google:", error),
 });
+
 
   const [isConsentGiven, setIsConsentGiven] = useState(false);
 

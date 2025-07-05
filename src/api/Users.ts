@@ -1,6 +1,8 @@
+import { useAuthStore } from "../store/auth.store";
+
 export const getAllUsers = async () => {
   const API_URL = import.meta.env.VITE_API_URL;
-  const token = localStorage.getItem("token"); // o sessionStorage.getItem("token")
+    const token = useAuthStore.getState().token;
 
   if (!token) {
     throw new Error("Token no disponible");
@@ -19,7 +21,7 @@ export const getAllUsers = async () => {
     throw new Error(error?.message || "No se pudo obtener la lista de usuarios");
   }
 
-  return res.json(); // { userList: [...] }
+  return res.json(); 
 };
 
 

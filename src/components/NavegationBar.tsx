@@ -26,12 +26,13 @@ import {
   Sun,
 } from "lucide-react";
 import logo from "../assets/blanco.webp";
-import { useAuth } from "../contexts/AuthContext";
+
+import { useAuthStore } from "../store/auth.store";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/themeContext";
 
 export default function SuudaiNavbar() {
-  const { setToken } = useAuth();
+  const { setToken } = useAuthStore();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);

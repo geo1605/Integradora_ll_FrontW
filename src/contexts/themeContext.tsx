@@ -16,7 +16,6 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
-  // Inicializa desde localStorage SIN useEffect
   const [theme, setTheme] = useState<string>(() => {
     const stored = localStorage.getItem('theme');
     if (stored === 'dark' || stored === 'light') return stored;

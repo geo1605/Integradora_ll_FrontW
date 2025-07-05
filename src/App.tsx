@@ -11,15 +11,17 @@ import {
 } from "./features/";
 import { PublicOnlyRoute, ProtectedRoute } from "./components/";
 import { HeroUIProvider } from "@heroui/react";
-import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/themeContext";
 import PrivacyPolicy from "./features/auth/PrivacyPolicy";
+import { useInitAuth } from "./hooks/useInitAuth";
 import Main from "./features/main"; // <-- asegúrate de que el path sea correcto
 
 function App() {
+
+  useInitAuth();
+
   return (
     <HeroUIProvider>
-      <AuthProvider>
         <ThemeProvider>
           <BrowserRouter>
             <Routes>
@@ -57,7 +59,6 @@ function App() {
             </Routes>
           </BrowserRouter>
         </ThemeProvider>
-      </AuthProvider>
     </HeroUIProvider>
   );
 }

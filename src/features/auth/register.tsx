@@ -14,7 +14,7 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { useNavigate } from "react-router-dom";
 
 import { registerUser } from "../../api/Users";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuthStore } from "../../store/auth.store";
 
 interface RegisterProps {
   clear: boolean;
@@ -22,7 +22,7 @@ interface RegisterProps {
 
 export default function Register({ clear }: RegisterProps) {
   const navigate = useNavigate();
-  const { setToken } = useAuth(); // ✅ accede al contexto de autenticación
+  const { setToken } = useAuthStore(); 
 
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -52,7 +52,7 @@ export default function Register({ clear }: RegisterProps) {
       const token = response.token || response.accessToken;
       if (!token) throw new Error("No se recibió el token del servidor");
 
-      setToken(token); // ✅ guardamos el token en el contexto y localStorage
+      setToken(token); 
       alert("Usuario creado exitosamente");
       navigate("/");
     } catch (err: any) {
