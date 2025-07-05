@@ -9,18 +9,44 @@ import {
   Switch,
 } from "@heroui/react";
 import { useState } from "react";
+import type { Key } from "react";
 
-export default function UpdateUser() {
-  const [status, setStatus] = useState(true); // true = Activo, false = Inactivo
-  const [role, setRole] = useState("user");   // Valor inicial del rol
+interface User {
+  _id: string;
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  email: string;
+  phoneNumber?: string;
+  role: string;
+  status: boolean;
+}
+
+interface UpdateUserProps {
+  user: User;
+}
+
+export default function UpdateUser({ user }: UpdateUserProps) {
+  const [status, setStatus] = useState(user.status); // Use the user's current status
+  const [role, setRole] = useState(user.role);      // Use the user's current role
+
+  const handleRoleChange = (keys: Set<Key> | "all") => {
+    if (keys === "all") return;
+    const selectedKey = Array.from(keys)[0];
+    if (typeof selectedKey === "string") {
+      setRole(selectedKey);
+    }
+  };
 
   return (
     <ModalContent>
       {(onClose) => (
         <>
-          <ModalHeader className="flex flex-col gap-1">Editar Usuario</ModalHeader>
+          <ModalHeader className="flex flex-col gap-1">
+            Editar Usuario: {user.firstName} {user.lastName}
+          </ModalHeader>
           <ModalBody className="flex flex-col gap-4">
-            {/* Cambiar estatus con Switch */}
+            {/* Status toggle */}
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Estatus</span>
               <Switch
@@ -32,20 +58,21 @@ export default function UpdateUser() {
               </Switch>
             </div>
 
-            {/* Seleccionar rol con Select */}
+            {/* Role selection */}
             <Select
               label="Rol"
               placeholder="Selecciona un rol"
-              selectedKeys={[role]}
-              onSelectionChange={(keys) => setRole(Array.from(keys)[0])}
+              selectedKeys={new Set([role])}
+              onSelectionChange={handleRoleChange}
               isRequired
-              items={[
+            >
+              {[
                 { label: "Admin", value: "admin" },
                 { label: "User", value: "user" },
                 { label: "Guest", value: "guest" },
-              ]}
-            >
-              {(item) => <SelectItem key={item.value}>{item.label}</SelectItem>}
+              ].map((item) => (
+                <SelectItem key={item.value}>{item.label}</SelectItem>
+              ))}
             </Select>
           </ModalBody>
           <ModalFooter>
@@ -56,6 +83,7 @@ export default function UpdateUser() {
               color="primary"
               onPress={() => {
                 console.log("Guardar cambios:", { status, role });
+                // Here you would typically call an API to update the user
                 onClose();
               }}
             >

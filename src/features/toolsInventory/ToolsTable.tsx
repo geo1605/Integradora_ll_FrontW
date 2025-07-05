@@ -1,4 +1,4 @@
-// ToolsTable.tsx
+import type { ChipProps } from "@heroui/react";
 import React from "react";
 import {
   Table,
@@ -17,64 +17,79 @@ import {
   Input,
   useDisclosure,
 } from "@heroui/react";
-import ToolFormModal from "./ToolFormModal";
+import ToolFormModal from './ToolFormModal';
+import {
+  createTool,
+  getAllTools,
+  updateTool,
+  deleteTool
+} from '../../api/tools.inventory';
 
-const initialTools = [
-  {
-    id: 1,
-    name: "Drill",
-    description: "Activo",
-    status: true,
-    createdAt: new Date("2024-06-01"),
-  },
-  {
-    id: 2,
-    name: "Torch",
-    description: "EnUso",
-    status: true,
-    createdAt: new Date("2024-06-05"),
-  },
-  {
-    id: 3,
-    name: "Hydraulic Jack",
-    description: "Mantenimiento",
-    status: false,
-    createdAt: new Date("2024-06-10"),
-  },
-  {
-    id: 4,
-    name: "Pressure Washer",
-    description: "Deshabilitado",
-    status: false,
-    createdAt: new Date("2024-06-15"),
-  },
-];
+interface Tool {
+  _id: string;
+  toolName: string;
+  description: "Active" | "InUse" | "Maintenance" | "Disabled";
+  status: boolean;
+  createDate: Date;
+}
 
-const toolColumns = [
-  { name: "NOMBRE", uid: "name", sortable: true },
+interface ToolColumn {
+  name: string;
+  uid: keyof Tool | 'actions';
+  sortable?: boolean;
+}
+
+const statusColorMap = {
+  Active: "success",
+  InUse: "primary",
+  Maintenance: "warning",
+  Disabled: "danger",
+} as const;
+
+const descriptionLabels = {
+  Active: "Activo",
+  InUse: "En uso",
+  Maintenance: "Mantenimiento",
+  Disabled: "Deshabilitado"
+} as const;
+
+const toolColumns: ToolColumn[] = [
+  { name: "NOMBRE", uid: "toolName", sortable: true },
   { name: "DESCRIPCIÓN", uid: "description", sortable: true },
   { name: "ESTADO", uid: "status", sortable: true },
-  { name: "FECHA DE CREACIÓN", uid: "createdAt", sortable: true },
+  { name: "FECHA DE CREACIÓN", uid: "createDate", sortable: true },
   { name: "ACCIONES", uid: "actions" },
 ];
 
-const statusColorMap = {
-  Activo: "success",
-  EnUso: "primary",
-  Mantenimiento: "warning",
-  Deshabilitado: "danger",
-};
-
 export default function ToolsTable() {
-  const [tools, setTools] = React.useState(initialTools);
+  const [tools, setTools] = React.useState<Tool[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
   const [filter, setFilter] = React.useState("");
   const [page, setPage] = React.useState(1);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [editingTool, setEditingTool] = React.useState(null);
+  const [editingTool, setEditingTool] = React.useState<Tool | null>(null);
+
+  React.useEffect(() => {
+    const fetchTools = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getAllTools();
+        setTools(data);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error al cargar herramientas');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTools();
+  }, []);
 
   const filteredTools = tools.filter((tool) =>
-    tool.name.toLowerCase().includes(filter.toLowerCase())
+    tool.toolName.toLowerCase().includes(filter.toLowerCase())
   );
 
   const pages = Math.ceil(filteredTools.length / rowsPerPage);
@@ -83,26 +98,38 @@ export default function ToolsTable() {
     page * rowsPerPage
   );
 
-  const handleDelete = (id) => {
-    setTools((prev) => prev.filter((tool) => tool.id !== id));
-  };
-
-  const handleSave = (data) => {
-    if (editingTool) {
-      setTools((prev) =>
-        prev.map((t) => (t.id === editingTool.id ? { ...t, ...data } : t))
-      );
-    } else {
-      setTools((prev) => [
-        { ...data, id: Date.now(), createdAt: new Date() },
-        ...prev,
-      ]);
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteTool(id);
+      setTools(prev => prev.filter(tool => tool._id !== id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al eliminar herramienta');
     }
-    setEditingTool(null);
   };
 
-  const renderCell = (item, key) => {
-    const value = item[key];
+  const handleSave = async (data: { 
+    toolName: string; 
+    description: "Active" | "InUse" | "Maintenance" | "Disabled"; 
+    status: boolean 
+  }) => {
+    try {
+      if (editingTool) {
+        const updatedTool = await updateTool(editingTool._id, data);
+        setTools(prev => 
+          prev.map(t => t._id === editingTool._id ? updatedTool : t)
+        );
+      } else {
+        const newTool = await createTool(data);
+        setTools(prev => [newTool, ...prev]);
+      }
+      setEditingTool(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al guardar herramienta');
+    }
+  };
+
+  const renderCell = (item: Tool, key: keyof Tool | 'actions') => {
+    const value = item[key as keyof Tool];
 
     switch (key) {
       case "status":
@@ -113,8 +140,11 @@ export default function ToolsTable() {
         );
       case "description":
         return (
-          <Chip color={statusColorMap[item.description]} size="sm">
-            {item.description}
+          <Chip 
+            color={statusColorMap[item.description] as ChipProps['color']} 
+            size="sm"
+          >
+            {descriptionLabels[item.description]}
           </Chip>
         );
       case "actions":
@@ -138,19 +168,22 @@ export default function ToolsTable() {
               <DropdownItem
                 key="delete"
                 color="danger"
-                onClick={() => handleDelete(item.id)}
+                onClick={() => handleDelete(item._id)}
               >
                 Eliminar
               </DropdownItem>
             </DropdownMenu>
           </Dropdown>
         );
-      case "createdAt":
-        return new Date(value).toLocaleDateString();
+      case "createDate":
+        return new Date(value as Date).toLocaleDateString();
       default:
-        return value;
+        return value as React.ReactNode;
     }
   };
+
+  if (isLoading) return <div>Cargando herramientas...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="p-4">
@@ -197,8 +230,12 @@ export default function ToolsTable() {
         </TableHeader>
         <TableBody emptyContent={"No hay herramientas"} items={pagedTools}>
           {(item) => (
-            <TableRow key={item.id}>
-              {(col) => <TableCell>{renderCell(item, col)}</TableCell>}
+            <TableRow key={item._id}>
+              {(columnKey) => (
+                <TableCell>
+                  {renderCell(item, columnKey as keyof Tool | 'actions')}
+                </TableCell>
+              )}
             </TableRow>
           )}
         </TableBody>
@@ -219,7 +256,7 @@ export default function ToolsTable() {
       <ToolFormModal
         isOpen={isOpen}
         onClose={onOpenChange}
-        initialData={editingTool}
+        initialData={editingTool || undefined}
         onSubmit={handleSave}
       />
     </div>

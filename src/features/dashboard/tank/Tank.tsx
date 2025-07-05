@@ -1,6 +1,4 @@
-import React from "react";
 import TankWaves from "./Waves";
-import { color } from "framer-motion";
 
 interface TankProps {
   level: number;

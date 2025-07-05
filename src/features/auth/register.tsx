@@ -1,4 +1,3 @@
-// ✅ Register.tsx
 import { useEffect, useState } from "react";
 import {
   Form,
@@ -14,9 +13,8 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { useNavigate } from "react-router-dom";
 
-
-
 import { registerUser } from "../../api/Users";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface RegisterProps {
   clear: boolean;
@@ -24,6 +22,8 @@ interface RegisterProps {
 
 export default function Register({ clear }: RegisterProps) {
   const navigate = useNavigate();
+  const { setToken } = useAuth(); // ✅ accede al contexto de autenticación
+
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -48,11 +48,16 @@ export default function Register({ clear }: RegisterProps) {
     try {
       const response = await registerUser(formData);
       console.log("Usuario creado:", response);
+
+      const token = response.token || response.accessToken;
+      if (!token) throw new Error("No se recibió el token del servidor");
+
+      setToken(token); // ✅ guardamos el token en el contexto y localStorage
       alert("Usuario creado exitosamente");
       navigate("/");
     } catch (err: any) {
       console.error("Error en el registro:", err);
-      alert(err.message);
+      alert(err.message || "Error al registrarse");
     }
   };
 
@@ -209,4 +214,3 @@ export default function Register({ clear }: RegisterProps) {
     </Form>
   );
 }
-
