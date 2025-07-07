@@ -4,7 +4,6 @@ import {
   NavbarBrand,
   NavbarContent,
   NavbarItem,
-  Link,
   Avatar,
   Dropdown,
   DropdownTrigger,
@@ -28,7 +27,7 @@ import {
 import logo from "../assets/blanco.webp";
 
 import { useAuthStore } from "../store/auth.store";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useTheme } from "../contexts/themeContext";
 
 export default function SuudaiNavbar() {
@@ -57,7 +56,10 @@ export default function SuudaiNavbar() {
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           className="sm:hidden"
         />
-        <Link href="/" className="flex items-center gap-2 px-4 py-2 no-underline text-inherit">
+        <Link
+          to="/"
+          className="flex items-center gap-2 px-4 py-2 no-underline text-inherit"
+        >
           <NavbarBrand>
             <img src={logo} alt="SUUDAI logo" className="h-12" />
             <span className="font-bold text-lg">SUUDAI</span>
@@ -67,19 +69,28 @@ export default function SuudaiNavbar() {
 
       <NavbarContent className="gap-6 hidden sm:flex" justify="center">
         <NavbarItem>
-          <Link href="/plants" className="flex flex-col items-center text-white">
+          <Link
+            to="/plants"
+            className="flex flex-col items-center text-white"
+          >
             <LeafIcon size={20} />
             <span className="text-xs">Plantas</span>
           </Link>
         </NavbarItem>
         <NavbarItem>
-          <Link href="/monitoring" className="flex flex-col items-center text-white">
+          <Link
+            to="/monitoring"
+            className="flex flex-col items-center text-white"
+          >
             <MonitorIcon size={20} />
             <span className="text-xs">Monitoreo</span>
           </Link>
         </NavbarItem>
         <NavbarItem>
-          <Link href="/history" className="flex flex-col items-center text-white">
+          <Link
+            to="/history"
+            className="flex flex-col items-center text-white"
+          >
             <ClockIcon size={20} />
             <span className="text-xs">Historial</span>
           </Link>
@@ -101,10 +112,10 @@ export default function SuudaiNavbar() {
             </Button>
           </DropdownTrigger>
           <DropdownMenu aria-label="Gestion Menu">
-            <DropdownItem key="g2" href="/inventory">
+            <DropdownItem key="g2" onClick={() => navigate("/inventory")}>
               Inventario
             </DropdownItem>
-            <DropdownItem key="g3" href="/users">
+            <DropdownItem key="g3" onClick={() => navigate("/users")}>
               Usuarios
             </DropdownItem>
           </DropdownMenu>
@@ -131,7 +142,9 @@ export default function SuudaiNavbar() {
               <p className="font-semibold">Signed in as</p>
               <p className="font-semibold">zoey@example.com</p>
             </DropdownItem>
-            <DropdownItem key="settings">My Settings</DropdownItem>
+            <DropdownItem key="settings" onClick={() => navigate("/profile")}>
+              My Settings
+            </DropdownItem>
             <DropdownItem key="notifications">Notifications</DropdownItem>
             <DropdownItem key="switch" isReadOnly>
               <div className="flex items-center justify-between w-full">
@@ -155,25 +168,27 @@ export default function SuudaiNavbar() {
       </NavbarContent>
 
       <NavbarMenu>
-        {[{ label: "Plantas", icon: <LeafIcon size={18} />, path: "/plants" },
+        {[
+          { label: "Plantas", icon: <LeafIcon size={18} />, path: "/plants" },
           { label: "Monitoreo", icon: <MonitorIcon size={18} />, path: "/monitoring" },
           { label: "Historial", icon: <ClockIcon size={18} />, path: "/history" },
           { label: "Inventario", icon: <BarChart2Icon size={18} />, path: "/inventory" },
-          { label: "Usuarios", icon: <BarChart2Icon size={18} />, path: "/users" }].map((item, index) => (
-            <NavbarMenuItem key={index}>
-              <Button
-                variant="light"
-                className="w-full flex gap-2 items-center justify-start text-left"
-                onClick={() => {
-                  navigate(item.path);
-                  setIsMenuOpen(false);
-                }}
-              >
-                {item.icon}
-                {item.label}
-              </Button>
-            </NavbarMenuItem>
-          ))}
+          { label: "Usuarios", icon: <BarChart2Icon size={18} />, path: "/users" }
+        ].map((item, index) => (
+          <NavbarMenuItem key={index}>
+            <Button
+              variant="light"
+              className="w-full flex gap-2 items-center justify-start text-left"
+              onClick={() => {
+                navigate(item.path);
+                setIsMenuOpen(false);
+              }}
+            >
+              {item.icon}
+              {item.label}
+            </Button>
+          </NavbarMenuItem>
+        ))}
       </NavbarMenu>
     </Navbar>
   );

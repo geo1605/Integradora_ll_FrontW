@@ -6,7 +6,7 @@ export default function UserProfileView({
   userInfo,
   onEdit,
 }: {
-  userInfo: { name: string; email: string; password: string; avatar: string; role: string };
+  userInfo: { name: string; email: string; avatar: string; role: string };
   onEdit: () => void;
 }) {
   return (
@@ -39,7 +39,7 @@ export default function UserProfileView({
             <LockIcon className="mr-3 text-green-600 h-5 w-5" />
             <div>
               <p className="text-xs font-medium text-gray-500">Contraseña</p>
-              <p className="text-gray-800">{userInfo.password}</p>
+              <p className="text-gray-800">******</p>
             </div>
           </div>
 

@@ -18,6 +18,7 @@ import {
   useDisclosure,
 } from "@heroui/react";
 import ToolFormModal from './ToolFormModal';
+import AlertModal from '../../components/alerts'
 import {
   createTool,
   getAllTools,
@@ -70,6 +71,10 @@ export default function ToolsTable() {
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [editingTool, setEditingTool] = React.useState<Tool | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
+  const [toolToDelete, setToolToDelete] = React.useState<Tool | null>(null);
+  const [errorModalOpen, setErrorModalOpen] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
 
   React.useEffect(() => {
     const fetchTools = async () => {
@@ -98,24 +103,28 @@ export default function ToolsTable() {
     page * rowsPerPage
   );
 
-  const handleDelete = async (id: string) => {
+  const confirmDeleteTool = async () => {
+    if (!toolToDelete) return;
     try {
-      await deleteTool(id);
-      setTools(prev => prev.filter(tool => tool._id !== id));
+      await deleteTool(toolToDelete._id);
+      setTools(prev => prev.filter(tool => tool._id !== toolToDelete._id));
+      setToolToDelete(null);
+      setDeleteModalOpen(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al eliminar herramienta');
+      setErrorMessage(err instanceof Error ? err.message : 'Error al eliminar herramienta');
+      setErrorModalOpen(true);
     }
   };
 
-  const handleSave = async (data: { 
-    toolName: string; 
-    description: "Active" | "InUse" | "Maintenance" | "Disabled"; 
-    status: boolean 
+  const handleSave = async (data: {
+    toolName: string;
+    description: "Active" | "InUse" | "Maintenance" | "Disabled";
+    status: boolean;
   }) => {
     try {
       if (editingTool) {
         const updatedTool = await updateTool(editingTool._id, data);
-        setTools(prev => 
+        setTools(prev =>
           prev.map(t => t._id === editingTool._id ? updatedTool : t)
         );
       } else {
@@ -124,7 +133,8 @@ export default function ToolsTable() {
       }
       setEditingTool(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al guardar herramienta');
+      setErrorMessage(err instanceof Error ? err.message : 'Error al guardar herramienta');
+      setErrorModalOpen(true);
     }
   };
 
@@ -140,8 +150,8 @@ export default function ToolsTable() {
         );
       case "description":
         return (
-          <Chip 
-            color={statusColorMap[item.description] as ChipProps['color']} 
+          <Chip
+            color={statusColorMap[item.description] as ChipProps['color']}
             size="sm"
           >
             {descriptionLabels[item.description]}
@@ -168,7 +178,10 @@ export default function ToolsTable() {
               <DropdownItem
                 key="delete"
                 color="danger"
-                onClick={() => handleDelete(item._id)}
+                onClick={() => {
+                  setToolToDelete(item);
+                  setDeleteModalOpen(true);
+                }}
               >
                 Eliminar
               </DropdownItem>
@@ -253,12 +266,36 @@ export default function ToolsTable() {
           onChange={setPage}
         />
       </div>
+
       <ToolFormModal
         isOpen={isOpen}
         onClose={onOpenChange}
         initialData={editingTool || undefined}
         onSubmit={handleSave}
       />
+
+      <AlertModal
+        isOpen={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}   // Aquí va para controlar abrir/cerrar
+        title="¿Eliminar herramienta?"
+        message={`¿Estás seguro de que deseas eliminar "${toolToDelete?.toolName}"?`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={confirmDeleteTool}
+        showCancelButton={true}  // o omitir porque es true por defecto
+      />
+
+
+      <AlertModal
+        isOpen={errorModalOpen}
+        onOpenChange={setErrorModalOpen}
+        title="Error"
+        message={errorMessage}
+        confirmText="Cerrar"
+        showCancelButton={false}  // oculta botón cancelar
+        onConfirm={() => setErrorModalOpen(false)}
+      />
+
     </div>
   );
 }

@@ -26,7 +26,6 @@ export default function ProfileScreen() {
 
     return (
         <>
-            <SuudaiNavbar/>
             <motion.div 
                 initial="hidden"
                 animate="visible"

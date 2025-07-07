@@ -1,22 +1,26 @@
 import { useState, useEffect } from "react";
-
 import {
-  Form, Input, Button, Modal, ModalContent, ModalHeader,
-  ModalBody, ModalFooter, useDisclosure
+  Form,
+  Input,
+  Button,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
 } from "@heroui/react";
 
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import QrCodeOutlinedIcon from "@mui/icons-material/QrCodeOutlined";
+
 import LoginQR from "./LoginQr";
-
-
 import { loginUser } from "../../api/auth.users";
 import { useNavigate } from "react-router-dom";
-import { useGoogleLogin } from '@react-oauth/google';
-import { loginWithGoogle } from '../../api/authGoogle.api'
+import { useGoogleLogin } from "@react-oauth/google";
+import { loginWithGoogle } from "../../api/authGoogle.api";
 import { useAuthStore } from "../../store/auth.store";
-
 
 export default function Login({ clear }: { clear: boolean }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -24,7 +28,7 @@ export default function Login({ clear }: { clear: boolean }) {
   const [password, setPassword] = useState("");
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
+  const [isConsentGiven, setIsConsentGiven] = useState(false);
 
   const loginSuccessModal = useDisclosure();
   const qrModal = useDisclosure();
@@ -40,8 +44,8 @@ export default function Login({ clear }: { clear: boolean }) {
       const token = data.token || data.accessToken;
 
       if (token) {
-        setToken(token); // guarda en zustand
-        sessionStorage.setItem("token", token); 
+        setToken(token);
+        sessionStorage.setItem("token", token);
 
         loginSuccessModal.onOpen();
         setTimeout(() => {
@@ -56,7 +60,6 @@ export default function Login({ clear }: { clear: boolean }) {
       setErrorModalOpen(true);
     }
   };
-
 
   useEffect(() => {
     if (clear) {
@@ -76,31 +79,33 @@ export default function Login({ clear }: { clear: boolean }) {
     error_description?: string;
   }
 
-const login = useGoogleLogin({
-  flow: 'implicit',
-  scope: 'openid email profile',
-  onSuccess: async (tokenResponse: GoogleTokenResponse) => {
-    try {
-      const tokenToSend = tokenResponse.id_token || tokenResponse.access_token;
-      if (!tokenToSend) throw new Error("No se recibió token válido");
+  const login = useGoogleLogin({
+    flow: "implicit",
+    scope: "openid email profile",
+    onSuccess: async (tokenResponse: GoogleTokenResponse) => {
+      try {
+        const tokenToSend =
+          tokenResponse.id_token || tokenResponse.access_token;
+        if (!tokenToSend) throw new Error("No se recibió token válido");
 
-      const res = await loginWithGoogle(tokenToSend);
-
-      setToken(res.token);                            
-      sessionStorage.setItem('token', res.token);    
-      window.location.assign('/');
-
-    } catch (error) {
-      console.error("Error completo:", error);
-      const errorMsg = (error instanceof Error) ? error.message : String(error);
-      alert(`Error: ${errorMsg}`);
-    }
-  },
-  onError: (error) => console.error("Error de Google:", error),
-});
-
-
-  const [isConsentGiven, setIsConsentGiven] = useState(false);
+        const res = await loginWithGoogle(tokenToSend);
+        setToken(res.token);
+        sessionStorage.setItem("token", res.token);
+        window.location.assign("/");
+      } catch (error) {
+        console.error("Error completo:", error);
+        const errorMsg =
+          error instanceof Error ? error.message : String(error);
+        setErrorMessage(errorMsg);
+        setErrorModalOpen(true);
+      }
+    },
+    onError: (error) => {
+      console.error("Error de Google:", error);
+      setErrorMessage("Falló la autenticación con Google.");
+      setErrorModalOpen(true);
+    },
+  });
 
   return (
     <>
@@ -123,13 +128,25 @@ const login = useGoogleLogin({
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           endContent={
-            <button type="button" onClick={togglePassword} className="focus:outline-none">
-              {showPassword ? <VisibilityOffIcon className="text-gray-500" /> : <VisibilityIcon className="text-gray-500" />}
+            <button
+              type="button"
+              onClick={togglePassword}
+              className="focus:outline-none"
+            >
+              {showPassword ? (
+                <VisibilityOffIcon className="text-gray-500" />
+              ) : (
+                <VisibilityIcon className="text-gray-500" />
+              )}
             </button>
           }
         />
 
-        <Button className="w-full text-white" color="success" onPress={handleLogin}>
+        <Button
+          className="w-full text-white"
+          color="success"
+          onPress={handleLogin}
+        >
           Aceptar
         </Button>
       </Form>
@@ -141,14 +158,21 @@ const login = useGoogleLogin({
       </div>
 
       <Button
-        className={`w-full border ${isConsentGiven
-          ? "border-green-500 text-green-700 hover:bg-green-100"
-          : "border-gray-300 text-gray-400 cursor-not-allowed bg-gray-100"
-          }`}
+        className={`w-full border ${
+          isConsentGiven
+            ? "border-green-500 text-green-700 hover:bg-green-100"
+            : "border-gray-300 text-gray-400 cursor-not-allowed bg-gray-100"
+        }`}
         variant="bordered"
         disabled={!isConsentGiven}
         onClick={() => isConsentGiven && login()}
-        startContent={<img src="https://img.icons8.com/?size=512&id=17949&format=png" alt="Google" className="w-5 h-5" />}
+        startContent={
+          <img
+            src="https://img.icons8.com/?size=512&id=17949&format=png"
+            alt="Google"
+            className="w-5 h-5"
+          />
+        }
       >
         Continuar con Google
       </Button>
@@ -162,7 +186,9 @@ const login = useGoogleLogin({
           className="mr-2 mt-1"
         />
         <label htmlFor="consent" className="flex flex-col">
-          <span>Autorizo el uso de mis datos por sistemas externos (como Google).</span>
+          <span>
+            Autorizo el uso de mis datos por sistemas externos (como Google).
+          </span>
           <a
             href="/privacy-policy"
             target="_blank"
@@ -183,41 +209,55 @@ const login = useGoogleLogin({
         Escanear código QR
       </Button>
 
-      {/* Modal de Éxito */}
-      <Modal isOpen={loginSuccessModal.isOpen} onOpenChange={loginSuccessModal.onOpenChange}>
+      {/* ✅ Modal: Login Exitoso */}
+      <Modal
+        isOpen={loginSuccessModal.isOpen}
+        onOpenChange={loginSuccessModal.onOpenChange}
+      >
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="text-green-600 font-bold">¡Login exitoso!</ModalHeader>
+              <ModalHeader className="text-green-600 font-bold">
+                ¡Login exitoso!
+              </ModalHeader>
               <ModalBody>
                 <p>Serás redirigido al inicio en unos segundos...</p>
               </ModalBody>
               <ModalFooter>
-                <Button color="success" onPress={onClose}>Cerrar</Button>
+                <Button color="success" onPress={onClose}>
+                  Cerrar
+                </Button>
               </ModalFooter>
             </>
           )}
         </ModalContent>
       </Modal>
 
-      {/* Modal de Error */}
-      <Modal isOpen={errorModalOpen} onOpenChange={() => setErrorModalOpen(false)}>
+      {/* ❌ Modal: Error */}
+      <Modal
+        isOpen={errorModalOpen}
+        onOpenChange={() => setErrorModalOpen(false)}
+      >
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="text-red-600 font-bold">Error de autenticación</ModalHeader>
+              <ModalHeader className="text-red-600 font-bold">
+                Error de autenticación
+              </ModalHeader>
               <ModalBody>
-                <p>{errorMessage || "Error de autenticación"}</p>
+                <p>{errorMessage || "Error inesperado"}</p>
               </ModalBody>
               <ModalFooter>
-                <Button color="danger" onPress={onClose}>Cerrar</Button>
+                <Button color="danger" onPress={onClose}>
+                  Cerrar
+                </Button>
               </ModalFooter>
             </>
           )}
         </ModalContent>
       </Modal>
 
-      {/* Modal de QR */}
+      {/* 📷 Modal: Login QR */}
       <Modal isOpen={qrModal.isOpen} onOpenChange={qrModal.onOpenChange}>
         <ModalContent>
           {(onClose) => (
@@ -227,7 +267,9 @@ const login = useGoogleLogin({
                 <LoginQR />
               </ModalBody>
               <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>Cerrar</Button>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  Cerrar
+                </Button>
               </ModalFooter>
             </>
           )}
