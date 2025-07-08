@@ -45,7 +45,6 @@ export default function Login({ clear }: { clear: boolean }) {
 
       if (token) {
         setToken(token);
-        sessionStorage.setItem("token", token);
 
         loginSuccessModal.onOpen();
         setTimeout(() => {
@@ -90,8 +89,7 @@ export default function Login({ clear }: { clear: boolean }) {
 
         const res = await loginWithGoogle(tokenToSend);
         setToken(res.token);
-        sessionStorage.setItem("token", res.token);
-        window.location.assign("/");
+        navigate("/")
       } catch (error) {
         console.error("Error completo:", error);
         const errorMsg =

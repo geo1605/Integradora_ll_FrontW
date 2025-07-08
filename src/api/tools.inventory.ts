@@ -1,12 +1,15 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/auth.store'; 
+import { handleUnauthorized } from '../components/handleUnauthorized';
 
 const API_URL =   import.meta.env.VITE_API_URL;
+
 
 export const createTool = async (toolData: {
   toolName: string;
   description: string;
 }) => {
+
   try {
     const token = useAuthStore.getState().token;
     const response = await axios.post(`${API_URL}/api/toolInventory/new`, toolData, {
@@ -24,6 +27,7 @@ export const createTool = async (toolData: {
         case 400:
           throw new Error('Ya existe una herramienta con ese nombre.');
         case 401:
+          await handleUnauthorized();
           throw new Error('No autorizado. Por favor, inicie sesión nuevamente.');
         default:
           throw new Error(error.response.data.message || 'Error al crear la herramienta');
@@ -49,6 +53,7 @@ export const getAllTools = async () => {
     if (error.response) {
       switch (error.response.status) {
         case 401:
+          await handleUnauthorized();
           throw new Error('No autorizado. Por favor, inicie sesión nuevamente.');
         case 404:
           throw new Error('No se encontraron herramientas.');
@@ -76,6 +81,7 @@ export const getToolById = async (id: string) => {
     if (error.response) {
       switch (error.response.status) {
         case 401:
+          await handleUnauthorized();
           throw new Error('No autorizado. Por favor, inicie sesión nuevamente.');
         case 404:
           throw new Error('Herramienta no encontrada.');
@@ -109,6 +115,7 @@ export const updateTool = async (id: string, toolData: {
         case 400:
           throw new Error('Ya existe otra herramienta con ese nombre.');
         case 401:
+          await handleUnauthorized();
           throw new Error('No autorizado. Por favor, inicie sesión nuevamente.');
         case 404:
           throw new Error('Herramienta no encontrada.');
@@ -138,6 +145,7 @@ export const deleteTool = async (id: string) => {
         case 400:
           throw new Error('La herramienta ya está eliminada.');
         case 401:
+          await handleUnauthorized();
           throw new Error('No autorizado. Por favor, inicie sesión nuevamente.');
         case 404:
           throw new Error('Herramienta no encontrada.');

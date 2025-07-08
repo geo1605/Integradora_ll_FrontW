@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useAuthStore } from "../store/auth.store";
+import { handleUnauthorized } from "../components/handleUnauthorized";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -11,10 +12,24 @@ export const getAllModules = async () => {
         Authorization: `Bearer ${token}`,
       },
     });
+
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error al obtener módulos:", error);
-    return [];
+
+    if (error.response) {
+      switch (error.response.status) {
+        case 401:
+          await handleUnauthorized();
+          throw new Error('No autorizado. Por favor, inicie sesión nuevamente.');
+        case 404:
+          throw new Error('No se encontraron módulos.');
+        default:
+          throw new Error(error.response.data.message || 'Error al obtener los módulos');
+      }
+    } else {
+      throw new Error('Error de conexión. Por favor, verifica tu conexión a internet.');
+    }
   }
 };
 
@@ -47,6 +62,7 @@ export const createModule = async (moduleData: {
         case 409:
           throw new Error('Ya existe un módulo con ese nombre.');
         case 401:
+          await handleUnauthorized();
           throw new Error('No autorizado. Por favor, inicie sesión nuevamente.');
         default:
           throw new Error(error.response.data.message || 'Error al crear el módulo');
@@ -77,6 +93,7 @@ export const deleteModule = async (moduleId: string) => {
         case 404:
           throw new Error('Módulo no encontrado.');
         case 401:
+          await handleUnauthorized();
           throw new Error('No autorizado. Por favor, inicie sesión nuevamente.');
         case 403:
           throw new Error('No tiene permisos para eliminar este módulo.');
@@ -126,6 +143,7 @@ export const updateModule = async (
         case 409:
           throw new Error('Ya existe otro módulo con ese nombre.');
         case 401:
+          await handleUnauthorized();
           throw new Error('No autorizado. Por favor, inicie sesión nuevamente.');
         default:
           throw new Error(error.response.data.message || 'Error al actualizar el módulo');

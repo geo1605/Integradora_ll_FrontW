@@ -14,7 +14,7 @@ import { HeroUIProvider } from "@heroui/react";
 import { ThemeProvider } from "./contexts/themeContext";
 import PrivacyPolicy from "./features/auth/PrivacyPolicy";
 import { useInitAuth } from "./hooks/useInitAuth";
-import Main from "./features/main"; // <-- asegúrate de que el path sea correcto
+import Main from "./features/main"; 
 
 function App() {
 

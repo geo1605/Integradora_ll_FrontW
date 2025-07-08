@@ -7,14 +7,13 @@ export const useInitAuth = () => {
 
   useEffect(() => {
     const checkToken = async () => {
-      const token = sessionStorage.getItem("token");
+      const token = useAuthStore.getState().token;
 
       if (token) {
         const valid = await verifyToken(token);
         if (valid) {
           setToken(token);
         } else {
-          sessionStorage.removeItem("token");
           setToken(null);
         }
       }
