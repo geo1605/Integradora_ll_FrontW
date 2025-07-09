@@ -49,12 +49,14 @@ export default function PopOverPlant({
         <p className="text-sm font-semibold" style={{ color: "var(--text-color)" }}>
           Planta: <span className="font-normal">{plantName || "Sin planta"}</span>
         </p>
-        <p className="text-sm font-semibold" style={{ color: "var(--text-color)" }}>
-          Estado:{" "}
-          <span className="font-bold" style={{ color: "var(--green)" }}>
-            {status || "-"}
-          </span>
-        </p>
+        {plantName?.trim() && (
+          <p className="text-sm font-semibold" style={{ color: "var(--text-color)" }}>
+            Estado:{" "}
+            <span className="font-bold" style={{ color: "var(--green)" }}>
+              {status || "-"}
+            </span>
+          </p>
+        )}
       </div>
 
       <div className="flex justify-between mt-3 gap-2">

@@ -23,7 +23,7 @@ function PipeStructure({ color = "--pipe-color" }: { color?: string }) {
   );
 }
 
-export default function Pipe({ label = "Módulo BI", color, modules = [] }: PipeProps) {
+export default function Pipe({  color, modules = [] }: PipeProps) {
   // Elimina el useEffect y el estado local de módulos
   
   // Filtrar módulos válidos (con nombre)
@@ -52,7 +52,6 @@ export default function Pipe({ label = "Módulo BI", color, modules = [] }: Pipe
 
       <PipeStructure color={color} />
 
-      <div className="mt-2 text-gray-500 text-sm">{label}</div>
     </div>
   );
 }

@@ -19,12 +19,13 @@ import {
   ModalContent,
   ModalHeader,
   ModalBody,
-  ModalFooter
+  ModalFooter,
 } from "@heroui/react";
 import PopOverPlant from "./PopOverPlant";
 import { useState } from "react";
 import { PlantIcon } from "./plant.icon";
 import { updateModule, deleteModule } from "../../api/Botanic";
+import AlertModal from "../../components/alerts";
 
 interface ModuleProps {
   _id: string;
@@ -37,30 +38,34 @@ interface ModuleProps {
   onUpdate?: () => void;
 }
 
-export default function Module({ 
-  _id, 
-  name, 
-  ubication = "Sector Norte", 
-  plantName, 
-  type = "Hortaliza", 
-  status = "Growing", 
+export default function Module({
+  name,
+  ubication = "Sector Norte",
+  plantName,
+  type = "Hortaliza",
+  status = "Growing",
   createDate,
-  onUpdate
+  onUpdate,
 }: ModuleProps) {
   const { isOpen: isPopoverOpen, onOpenChange: setPopoverOpen } = useDisclosure();
   const { isOpen: isDrawerOpen, onOpen: openDrawer, onOpenChange: setDrawerOpen } = useDisclosure();
   const { isOpen: isDeleteModalOpen, onOpenChange: setDeleteModalOpen } = useDisclosure();
-  
+
   const [hasPlant, setHasPlant] = useState(!!plantName);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertTitle, setAlertTitle] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [isVisible, setIsVisible] = useState(true);
+  const [moduleDeleted, setModuleDeleted] = useState(false); // Flag para ocultar módulo tras alerta
 
   const [moduleData, setModuleData] = useState({
     name,
     ubication,
     plantName: plantName || "",
     type,
-    status
+    status,
   });
 
   const handleSave = async () => {
@@ -69,21 +74,30 @@ export default function Module({
       const updateData = {
         name: moduleData.name,
         ubication: moduleData.ubication,
-        plants: hasPlant ? [{
-          plantName: moduleData.plantName,
-          type: moduleData.type,
-          status: moduleData.status
-        }] : []
+        plants: hasPlant
+          ? [
+              {
+                plantName: moduleData.plantName,
+                type: moduleData.type,
+                status: moduleData.status,
+              },
+            ]
+          : [],
       };
 
-      await updateModule(_id, updateData);
-      console.log("Módulo actualizado correctamente");
-      
+      await updateModule(name, updateData);
       setDrawerOpen();
       if (onUpdate) onUpdate();
+
+      setAlertTitle("Módulo actualizado");
+      setAlertMessage(`El módulo "${moduleData.name}" se ha actualizado correctamente.`);
+      setShowAlert(true);
+      setModuleDeleted(false);
     } catch (error: any) {
-      console.error("Error al guardar:", error.message);
-      alert(`Error al guardar: ${error.message}`);
+      setAlertTitle("Error al guardar");
+      setAlertMessage(error.message || "Ocurrió un error al actualizar el módulo.");
+      setShowAlert(true);
+      setModuleDeleted(false);
     } finally {
       setIsSaving(false);
     }
@@ -93,42 +107,50 @@ export default function Module({
     setIsDeleting(true);
     try {
       if (deletePlantOnly) {
-        await updateModule(_id, { plants: [] });
-        console.log("Planta eliminada correctamente");
+        await updateModule(name, { plants: [] });
+        setAlertTitle("Planta eliminada");
+        setAlertMessage(`La planta del módulo "${name}" fue eliminada correctamente.`);
+        setModuleDeleted(false);
       } else {
-        await deleteModule(_id);
-        console.log("Módulo eliminado correctamente");
+        await deleteModule(name);
+        setAlertTitle("Módulo eliminado");
+        setAlertMessage(`El módulo "${name}" fue eliminado correctamente.`);
+        setModuleDeleted(true); // marcar para ocultar tras cerrar alerta
       }
 
       setDeleteModalOpen();
+      setShowAlert(true);
       if (onUpdate) onUpdate();
     } catch (error: any) {
-      console.error("Error al eliminar:", error.message);
-      alert(`Error al eliminar: ${error.message}`);
+      setAlertTitle("Error al eliminar");
+      setAlertMessage(error.message || "Ocurrió un error al eliminar.");
+      setShowAlert(true);
+      setModuleDeleted(false);
     } finally {
       setIsDeleting(false);
     }
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setModuleData(prev => ({ ...prev, [field]: value }));
+    setModuleData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handlePlantToggle = (isChecked: boolean) => {
     setHasPlant(isChecked);
     if (!isChecked) {
-      setModuleData(prev => ({
+      setModuleData((prev) => ({
         ...prev,
         plantName: "",
         type: "Hortaliza",
-        status: "Growing"
+        status: "Growing",
       }));
     }
   };
 
+  if (!isVisible) return null;
+
   return (
     <>
-      {/* Popover principal */}
       <Popover
         placement="top"
         showArrow
@@ -168,35 +190,33 @@ export default function Module({
               openDrawer();
             }}
             onDeleteClick={() => {
+              setPopoverOpen();
               setDeleteModalOpen();
             }}
           />
         </PopoverContent>
       </Popover>
 
-      {/* Drawer de edición */}
       <Drawer isOpen={isDrawerOpen} placement="left" onOpenChange={setDrawerOpen}>
         <DrawerContent className="flex items-center justify-center">
-          <DrawerHeader className="flex flex-col gap-1">
-            Editar Módulo
-          </DrawerHeader>
+          <DrawerHeader className="flex flex-col gap-1">Editar Módulo</DrawerHeader>
           <DrawerBody className="w-full flex justify-center items-center">
-            <Form className="space-y-6 w-full max-w-sm" onSubmit={handleSave}>
+            <Form className="space-y-6 w-full max-w-sm" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
               <h2 className="text-7xl font-bold text-center mb-4" style={{ color: "var(--blue)" }}>
                 {moduleData.name}
               </h2>
-              
+
               <Input
                 isRequired
                 label="Nombre del módulo"
                 value={moduleData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
+                onChange={(e) => handleInputChange("name", e.target.value)}
               />
-              
+
               <Select
                 label="Ubicación"
                 selectedKeys={[moduleData.ubication]}
-                onChange={(e) => handleInputChange('ubication', e.target.value)}
+                onChange={(e) => handleInputChange("ubication", e.target.value)}
               >
                 <SelectItem key="Sector Norte">Sector Norte</SelectItem>
                 <SelectItem key="Sector Sur">Sector Sur</SelectItem>
@@ -217,24 +237,24 @@ export default function Module({
                   <Input
                     label="Nombre de la planta"
                     value={moduleData.plantName}
-                    onChange={(e) => handleInputChange('plantName', e.target.value)}
+                    onChange={(e) => handleInputChange("plantName", e.target.value)}
                   />
-                  
+
                   <Select
                     label="Tipo de planta"
                     selectedKeys={[moduleData.type]}
-                    onChange={(e) => handleInputChange('type', e.target.value)}
+                    onChange={(e) => handleInputChange("type", e.target.value)}
                   >
                     <SelectItem key="Hortaliza">Hortaliza</SelectItem>
                     <SelectItem key="Fruta">Fruta</SelectItem>
                     <SelectItem key="Hierba">Hierba</SelectItem>
                     <SelectItem key="Flor">Flor</SelectItem>
                   </Select>
-                  
+
                   <Select
                     label="Estado"
                     selectedKeys={[moduleData.status]}
-                    onChange={(e) => handleInputChange('status', e.target.value)}
+                    onChange={(e) => handleInputChange("status", e.target.value)}
                   >
                     <SelectItem key="Growing">Growing</SelectItem>
                     <SelectItem key="Germinating">Germinating</SelectItem>
@@ -249,31 +269,24 @@ export default function Module({
             <Button color="danger" variant="light" onClick={() => setDrawerOpen()}>
               Cancelar
             </Button>
-            <Button 
-              color="success" 
-              onClick={handleSave}
-              isLoading={isSaving}
-            >
+            <Button color="success" onClick={handleSave} isLoading={isSaving}>
               Guardar cambios
             </Button>
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
 
-      {/* Modal de confirmación de eliminación */}
       <Modal isOpen={isDeleteModalOpen} onOpenChange={setDeleteModalOpen}>
         <ModalContent>
-          <ModalHeader className="flex flex-col gap-1">
-            Confirmar eliminación
-          </ModalHeader>
+          <ModalHeader className="flex flex-col gap-1">Confirmar eliminación</ModalHeader>
           <ModalBody>
             <p>¿Qué deseas eliminar?</p>
-            
+
             {hasPlant && (
               <>
-                <Button 
-                  color="danger" 
-                  variant="ghost" 
+                <Button
+                  color="danger"
+                  variant="ghost"
                   className="w-full mt-2"
                   onClick={() => handleDelete(true)}
                   isLoading={isDeleting}
@@ -285,9 +298,9 @@ export default function Module({
                 </p>
               </>
             )}
-            
-            <Button 
-              color="danger" 
+
+            <Button
+              color="danger"
               className="w-full mt-4"
               onClick={() => handleDelete(false)}
               isLoading={isDeleting}
@@ -301,9 +314,9 @@ export default function Module({
             )}
           </ModalBody>
           <ModalFooter>
-            <Button 
-              color="default" 
-              variant="light" 
+            <Button
+              color="default"
+              variant="light"
               onClick={() => setDeleteModalOpen()}
               isDisabled={isDeleting}
             >
@@ -312,6 +325,23 @@ export default function Module({
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      <AlertModal
+        isOpen={showAlert}
+        onOpenChange={(open) => {
+          setShowAlert(open);
+          if (!open) {
+            if (moduleDeleted) {
+              setIsVisible(false);
+            }
+            if (onUpdate) onUpdate();
+          }
+        }}
+        title={alertTitle}
+        message={alertMessage}
+        showCancelButton={false}
+        confirmText="Entendido"
+      />
     </>
   );
 }

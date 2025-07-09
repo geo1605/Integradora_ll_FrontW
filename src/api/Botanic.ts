@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "axios"; 
 import { useAuthStore } from "../store/auth.store";
 import { handleUnauthorized } from "../components/handleUnauthorized";
 
@@ -50,11 +50,10 @@ export const createModule = async (moduleData: {
         'Content-Type': 'application/json'
       }
     });
-    return response.data.inventory; // Asumiendo que el backend devuelve el nuevo módulo en inventory
+    return response.data.inventory;
   } catch (error: any) {
     console.error("Error al crear módulo:", error);
     
-    // Manejo específico de errores basado en la respuesta del backend
     if (error.response) {
       switch (error.response.status) {
         case 400:
@@ -73,18 +72,18 @@ export const createModule = async (moduleData: {
   }
 };
 
-export const deleteModule = async (moduleId: string) => {
+export const deleteModule = async (moduleName: string) => {
   try {
     const token = useAuthStore.getState().token;
     const response = await axios.delete(
-      `${API_URL}/api/botanic/deletePlant/${moduleId}`,
+      `${API_URL}/api/botanic/deletePlant/${moduleName}`, // se usa `name`, no `_id`
       {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       }
     );
-    return response.data; // Devuelve confirmación de eliminación
+    return response.data;
   } catch (error: any) {
     console.error("Error al eliminar módulo:", error);
     
@@ -107,7 +106,7 @@ export const deleteModule = async (moduleId: string) => {
 };
 
 export const updateModule = async (
-  moduleId: string,
+  moduleName: string,
   updateData: {
     name?: string;
     ubication?: string;
@@ -120,36 +119,38 @@ export const updateModule = async (
 ) => {
   try {
     const token = useAuthStore.getState().token;
+
     const response = await axios.put(
-      `${API_URL}/api/botanic/updateInventory/data/${moduleId}`,
+      `${API_URL}/api/botanic/updateInventory/data/${moduleName}`,
       updateData,
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       }
     );
-    return response.data.updatedInventory; // Devuelve el módulo actualizado
+
+    return response.data.updatedInventory;
   } catch (error: any) {
     console.error("Error al actualizar módulo:", error);
-    
+
     if (error.response) {
       switch (error.response.status) {
         case 400:
-          throw new Error('Datos de actualización no válidos.');
+          throw new Error("Datos de actualización no válidos.");
         case 404:
-          throw new Error('Módulo no encontrado.');
+          throw new Error("Módulo no encontrado.");
         case 409:
-          throw new Error('Ya existe otro módulo con ese nombre.');
+          throw new Error("Ya existe otro módulo con ese nombre.");
         case 401:
           await handleUnauthorized();
-          throw new Error('No autorizado. Por favor, inicie sesión nuevamente.');
+          throw new Error("No autorizado. Por favor, inicie sesión nuevamente.");
         default:
-          throw new Error(error.response.data.message || 'Error al actualizar el módulo');
+          throw new Error(error.response.data.message || "Error al actualizar el módulo.");
       }
     } else {
-      throw new Error('Error de conexión. Por favor, verifique su conexión a internet.');
+      throw new Error("Error de conexión. Por favor, verifica tu conexión a internet.");
     }
   }
 };

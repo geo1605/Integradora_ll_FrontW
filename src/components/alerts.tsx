@@ -1,4 +1,3 @@
-// components/AlertModal.tsx
 import {
   Modal,
   ModalContent,
