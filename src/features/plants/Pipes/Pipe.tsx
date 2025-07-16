@@ -1,6 +1,4 @@
-import { useEffect, useState } from "react";
 import Module from "../Module";
-import { getAllModules } from "../../../api/Botanic"; // ajusta el path si es distinto
 
 import type { ReactNode } from "react";
 
@@ -40,7 +38,7 @@ export default function Pipe({  color, modules = [] }: PipeProps) {
           const firstPlant = module.plants?.[0];
           return (
             <Module
-              key={module._id || `${module.name}-${index}`}
+              key={ `${module.name}-${index}`}
               name={module.name}
               plantName={firstPlant?.plantName}
               status={firstPlant?.status}

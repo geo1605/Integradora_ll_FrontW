@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Navbar,
   NavbarBrand,
@@ -23,6 +23,7 @@ import {
   ChevronDown,
   Moon,
   Sun,
+  UserIcon,
 } from "lucide-react";
 import logo from "../assets/blanco.webp";
 
@@ -30,14 +31,33 @@ import { useAuthStore } from "../store/auth.store";
 import { useNavigate, Link } from "react-router-dom";
 import { useTheme } from "../contexts/themeContext";
 import { useUserRole } from "../hooks/useUserRole";
+import { getUserDataById } from "../api/Users";
+import { useUserId } from "../hooks/useUserId"; 
 
 export default function SuudaiNavbar() {
-  const { setToken } = useAuthStore();
+  const { token, setToken } = useAuthStore();
+  const userId = useUserId(); 
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [email, setEmail] = useState("Cargando...");
   const role = useUserRole();
+
+  useEffect(() => {
+    const fetchUserEmail = async () => {
+      if (!userId || !token) return;
+
+      try {
+        const userData = await getUserDataById(userId, token);
+        setEmail(userData.email);
+      } catch (err) {
+        console.error("Error al obtener el correo:", err);
+        setEmail("Error al cargar");
+      }
+    };
+
+    fetchUserEmail();
+  }, [userId, token]);
 
   const roleAccess: Record<string, string[]> = {
     Adm1ni$trad0r: ["dashboard", "plants", "users", "monitoring", "inventory", "history", "profile"],
@@ -56,11 +76,9 @@ export default function SuudaiNavbar() {
 
   const allowedRoutes = roleAccess[role ?? "Default"];
 
-  
-  // Filtramos los elementos del menú, excluyendo inventory y users si el usuario es admin
   const filteredMenuItems = allMenuItems.filter(item => {
     if (role === "Adm1ni$trad0r" && (item.key === "inventory" || item.key === "users")) {
-      return false; // Excluimos estos items para admin (aparecerán en el dropdown)
+      return false;
     }
     return allowedRoutes.includes(item.key);
   });
@@ -93,10 +111,7 @@ export default function SuudaiNavbar() {
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           className="sm:hidden"
         />
-        <Link
-          to="/"
-          className="flex items-center gap-2 px-4 py-2 no-underline text-inherit"
-        >
+        <Link to="/" className="flex items-center gap-2 px-4 py-2 no-underline text-inherit">
           <NavbarBrand>
             <img src={logo} alt="SUUDAI logo" className="h-12" />
             <span className="font-bold text-lg">SUUDAI</span>
@@ -123,7 +138,6 @@ export default function SuudaiNavbar() {
                 radius="sm"
                 variant="light"
                 endContent={<ChevronDown size={16} />}
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
                 <div className="flex flex-col items-center">
                   <BarChart2Icon size={20} />
@@ -132,32 +146,17 @@ export default function SuudaiNavbar() {
               </Button>
             </DropdownTrigger>
             <DropdownMenu aria-label="Gestion Menu">
-            {allowedRoutes.includes("inventory")
-              ? (
-                <DropdownItem
-                  key="g2"
-                  onClick={() => {
-                    navigate("/inventory");
-                    setIsMenuOpen(false);
-                  }}
-                >
+              {allowedRoutes.includes("inventory") ? (
+                <DropdownItem key="inventory" onClick={() => handleMenuItemClick("/inventory")}>
                   Inventario
                 </DropdownItem>
               ) : null}
-
-            {allowedRoutes.includes("users")
-              ? (
-                <DropdownItem
-                  key="g3"
-                  onClick={() => {
-                    navigate("/users");
-                    setIsMenuOpen(false);
-                  }}
-                >
+              {allowedRoutes.includes("users") ? (
+                <DropdownItem key="users" onClick={() => handleMenuItemClick("/users")}>
                   Usuarios
                 </DropdownItem>
               ) : null}
-          </DropdownMenu>
+            </DropdownMenu>
           </Dropdown>
         )}
       </NavbarContent>
@@ -169,23 +168,22 @@ export default function SuudaiNavbar() {
               isBordered
               as="button"
               className="transition-transform"
-              name="Jason Hughes"
               size="sm"
-              src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
+              icon={<UserIcon size={20} className="text-white" />} // Icono de usuario
             />
           </DropdownTrigger>
           <DropdownMenu aria-label="Profile Actions" variant="flat">
             <DropdownItem key="profile" className="h-14 gap-2">
-              <p className="font-semibold">Signed in as</p>
-              <p className="font-semibold">zoey@example.com</p>
+              <p className="font-semibold">Inició sesión como:</p>
+              <p className="font-semibold">{email}</p>
             </DropdownItem>
             <DropdownItem key="settings" onClick={() => navigate("/profile")}>
-              My Settings
+              Ajustes de Perfil
             </DropdownItem>
-            <DropdownItem key="notifications">Notifications</DropdownItem>
+            <DropdownItem key="notifications">Notificaciones</DropdownItem>
             <DropdownItem key="switch" isReadOnly>
               <div className="flex items-center justify-between w-full">
-                <span className="text-sm font-medium">Dark mode</span>
+                <span className="text-sm font-medium">Modo Oscuro</span>
                 <Switch
                   isSelected={theme === "dark"}
                   onValueChange={toggleTheme}
@@ -198,7 +196,7 @@ export default function SuudaiNavbar() {
               </div>
             </DropdownItem>
             <DropdownItem key="logout" color="danger" onPress={handleLogout}>
-              Log Out
+              Cerrar Sesión
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>
@@ -217,7 +215,7 @@ export default function SuudaiNavbar() {
             </Button>
           </NavbarMenuItem>
         ))}
-        
+
         {hasManagementItems && (
           <>
             {allowedRoutes.includes("inventory") && (
@@ -232,7 +230,6 @@ export default function SuudaiNavbar() {
                 </Button>
               </NavbarMenuItem>
             )}
-            
             {allowedRoutes.includes("users") && (
               <NavbarMenuItem>
                 <Button

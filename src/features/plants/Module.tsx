@@ -28,7 +28,6 @@ import { updateModule, deleteModule } from "../../api/Botanic";
 import AlertModal from "../../components/alerts";
 
 interface ModuleProps {
-  _id: string;
   name: string;
   ubication?: string;
   plantName?: string;

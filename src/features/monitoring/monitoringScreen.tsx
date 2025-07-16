@@ -2,6 +2,7 @@
 import {Card } from '@heroui/react'
 import Controls from './controls'
 import ParameterSettings from './Parameters'
+import CameraImage from '../../components/camera';
 
 export default function MonitoringScreen() {
   return (
@@ -12,11 +13,8 @@ export default function MonitoringScreen() {
           Monitoreo y Control
         </h2>
 
-        <Card className="p-6 mb-6 shadow-md">
-          <h3 className="text-xl font-semibold mb-2">Cámara</h3>
-          <div className="h-64 bg-gray-200 rounded-md flex items-center justify-center text-gray-500">
-            Vista de la cámara (próximamente)
-          </div>
+        <Card className=" shadow-md h-96">
+          <CameraImage />
         </Card>
 
         <h3 className="text-xl font-semibold mb-2">Controles</h3>

@@ -16,6 +16,8 @@ import PrivacyPolicy from "./features/auth/PrivacyPolicy";
 import { useInitAuth } from "./hooks/useInitAuth";
 import Main from "./features/main";
 import { useUserRole } from "./hooks/useUserRole";
+import EmailSend from "./features/Reset-password/Email.send";
+import ChangePassword from "./features/Reset-password/Change-password";
 
 function App() {
   useInitAuth();
@@ -48,9 +50,13 @@ function App() {
                 </PublicOnlyRoute>
               }
             />
+            
 
             {/* Ruta sin navbar */}
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/Change" element= {<EmailSend/>} />
+
+            <Route path="/NewPassword" element= {<ChangePassword/>}/>
 
             {/* Rutas protegidas con navbar */}
             <Route

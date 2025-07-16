@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type {Key} from 'react'
+import type { Key } from 'react';
 import {
   Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
   Input, Button, DropdownTrigger, Dropdown, DropdownMenu, DropdownItem,
@@ -8,7 +8,7 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { getAllUsers } from "../../api/Users";
+import { getAllUsers, updateUserByAdmin } from "../../api/Users";
 import UpdateUser from "./UpdateUser";
 
 interface User {
@@ -22,7 +22,12 @@ interface User {
   status: boolean;
 }
 
-
+const roleMap: Record<string, string> = {
+  Adm1ni$trad0r: "Administrador",
+  M4ntenim1ent0: "Mantenimiento",
+  B0t4nic0: "Botánico",
+  Default: "Default"
+};
 
 const columns = [
   { name: "Nombre", uid: "name", sortable: true },
@@ -47,7 +52,6 @@ const INITIAL_VISIBLE_COLUMNS = ["name", "email", "role", "status", "actions"];
 
 export default function UserTable() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-
   const [users, setUsers] = useState<User[]>([]);
   const [filterValue, setFilterValue] = useState("");
   const [visibleColumns, setVisibleColumns] = useState(new Set(INITIAL_VISIBLE_COLUMNS));
@@ -61,10 +65,17 @@ export default function UserTable() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   useEffect(() => {
-    getAllUsers()
-      .then((res) => setUsers(res.userList))
-      .catch((err) => console.error("Error al cargar usuarios", err));
+    loadUsers();
   }, []);
+
+  const loadUsers = async () => {
+    try {
+      const res = await getAllUsers();
+      setUsers(res.userList);
+    } catch (err) {
+      console.error("Error al cargar usuarios", err);
+    }
+  };
 
   const filteredItems = useMemo(() => {
     let filtered = [...users];
@@ -111,7 +122,7 @@ export default function UserTable() {
       case "phoneNumber":
         return user.phoneNumber || "-";
       case "role":
-        return <span className="capitalize">{user.role}</span>;
+        return <span className="capitalize">{roleMap[user.role] || user.role}</span>;
       case "status":
         return (
           <Chip
@@ -277,7 +288,6 @@ export default function UserTable() {
 
   return (
     <>
-       
       <Table
         isHeaderSticky
         aria-label="Tabla avanzada de usuarios"
@@ -305,8 +315,15 @@ export default function UserTable() {
           )}
         </TableBody>
       </Table>
+      
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-        {selectedUser && <UpdateUser user={selectedUser} />}
+        {selectedUser && (
+          <UpdateUser 
+            user={selectedUser} 
+            onClose={onOpenChange}
+            onUpdateSuccess={loadUsers}
+          />
+        )}
       </Modal>
     </>
   );

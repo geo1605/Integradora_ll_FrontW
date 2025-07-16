@@ -1,5 +1,5 @@
 import React from "react";
-import { Thermometer, Droplets, FlaskConical, ShieldCheck } from "lucide-react";
+import { Thermometer, Zap, FlaskConical, ShieldCheck } from "lucide-react";
 import { Card } from "@heroui/react";
 import { motion } from "framer-motion";
 
@@ -45,48 +45,47 @@ export default function StatsSummary() {
   const isNormal = generalStatus === "Normal";
 
   return (
-  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <StatCard
-      title="Temperatura Promedio"
-      value="22.4°C"
-      icon={<Thermometer className="text-orange-500 w-5 h-5" />}
-      color="bg-orange-500"
-      animate={true}
-    />
-    <StatCard
-      title="Humedad Promedio"
-      value="64.2%"
-      icon={<Droplets className="text-cyan-500 w-5 h-5" />}
-      color="bg-cyan-500"
-      animate={true}
-    />
-    <StatCard
-      title="pH Promedio"
-      value="6.8"
-      icon={<FlaskConical className="text-purple-500 w-5 h-5" />}
-      color="bg-purple-500"
-      animate={true}
-    />
-    <StatCard
-      title="Estado General"
-      value={
-        <motion.span 
-          className={`font-semibold ${isNormal ? "text-green-600" : "text-red-600"}`}
-          animate={!isNormal ? { 
-            scale: [1, 1.05, 1],
-            transition: { duration: 1.5, repeat: Infinity } 
-          } : {}}
-        >
-          {generalStatus}
-        </motion.span>
-      }
-      icon={
-        <ShieldCheck className={`${isNormal ? "text-green-600" : "text-red-600"} w-5 h-5`} />
-      }
-      color={isNormal ? "bg-green-500" : "bg-red-500"}
-      animate={!isNormal}
-    />
-  </div>
-);
-
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <StatCard
+        title="Temperatura Promedio"
+        value="22.4°C"
+        icon={<Thermometer className="text-orange-500 w-5 h-5" />}
+        color="bg-orange-500"
+        animate={true}
+      />
+      <StatCard
+        title="Conductividad Promedio"
+        value="1.3 mS/cm"
+        icon={<Zap className="text-cyan-500 w-5 h-5" />}
+        color="bg-cyan-500"
+        animate={true}
+      />
+      <StatCard
+        title="pH Promedio"
+        value="6.8"
+        icon={<FlaskConical className="text-purple-500 w-5 h-5" />}
+        color="bg-purple-500"
+        animate={true}
+      />
+      <StatCard
+        title="Estado General"
+        value={
+          <motion.span 
+            className={`font-semibold ${isNormal ? "text-green-600" : "text-red-600"}`}
+            animate={!isNormal ? { 
+              scale: [1, 1.05, 1],
+              transition: { duration: 1.5, repeat: Infinity } 
+            } : {}}
+          >
+            {generalStatus}
+          </motion.span>
+        }
+        icon={
+          <ShieldCheck className={`${isNormal ? "text-green-600" : "text-red-600"} w-5 h-5`} />
+        }
+        color={isNormal ? "bg-green-500" : "bg-red-500"}
+        animate={!isNormal}
+      />
+    </div>
+  );
 }

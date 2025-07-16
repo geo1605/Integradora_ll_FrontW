@@ -9,6 +9,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
+  Link
 } from "@heroui/react";
 
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -21,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import { loginWithGoogle } from "../../api/authGoogle.api";
 import { useAuthStore } from "../../store/auth.store";
+
 
 export default function Login({ clear }: { clear: boolean }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -147,6 +149,9 @@ export default function Login({ clear }: { clear: boolean }) {
         >
           Aceptar
         </Button>
+        <Link href="/Change" className="text-sm text-blue-500 hover:underline">
+          ¿Haz olvidado tu contraseña?
+        </Link>
       </Form>
 
       <div className="flex items-center my-4">

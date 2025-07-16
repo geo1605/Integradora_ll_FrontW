@@ -1,5 +1,5 @@
-
 const API_URL = import.meta.env.VITE_API_URL;
+
 // Crear sesión QR
 export const createQRSession = async (sessionCode: string): Promise<void> => {
   try {
@@ -25,7 +25,7 @@ export const createQRSession = async (sessionCode: string): Promise<void> => {
         case 500:
           throw new Error("Error interno del servidor al crear sesión QR.");
         default:
-          throw new Error(error.response.data.message || "Error al crear la sesión QR.");
+          throw new Error(error.response.data?.message || "Error al crear la sesión QR.");
       }
     } else {
       throw new Error(error.message || "Error de conexión. Verifique su red.");
@@ -33,11 +33,12 @@ export const createQRSession = async (sessionCode: string): Promise<void> => {
   }
 };
 
-
 // Consultar si el token ya fue vinculado
 export const getQRStatus = async (sessionCode: string): Promise<string | null> => {
   try {
-    const response = await fetch(`${API_URL}/api/qr/status/${sessionCode}`);
+    const response = await fetch(`${API_URL}/api/qr/status/${sessionCode}`, {
+      cache: "no-store",
+    });
 
     if (!response.ok) {
       const error = await response.json().catch(() => null);
@@ -48,7 +49,6 @@ export const getQRStatus = async (sessionCode: string): Promise<string | null> =
     return data.token || null;
   } catch (error: any) {
     console.error("Error al consultar estado del QR:", error);
-
     if (error.response) {
       switch (error.response.status) {
         case 400:
@@ -67,4 +67,3 @@ export const getQRStatus = async (sessionCode: string): Promise<string | null> =
     }
   }
 };
-

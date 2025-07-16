@@ -1,64 +1,151 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import UserProfileView from "./UserProfileView";
 import UserProfileEdit from "./UserProfileEdit";
-import { SuudaiNavbar } from "../../components";
 import { motion, AnimatePresence } from "framer-motion";
+import { useUserId } from "../../hooks/useUserId";
+import { useAuthStore } from "../../store/auth.store";
+import { getUserDataById, updateUserData } from "../../api/Users";
+
+interface UserInfo {
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  email: string;
+  phoneNumber?: string;
+  role: string;
+  password?: string;
+}
 
 export default function ProfileScreen() {
-    const [isEditing, setIsEditing] = useState(false);
-    const [userInfo, setUserInfo] = useState({
-        name: "Admin User",
-        email: "admin@greenhouse.com",
-        password: "2412545",
-        avatar: "https://i.pravatar.cc/150?img=5",
-        role: "Administrador"
-    });
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [userInfo, setUserInfo] = useState<UserInfo>({
+    firstName: "",
+    middleName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
+    role: "",
+  });
 
-    const handleSave = (newInfo: typeof userInfo) => {
-        setUserInfo(newInfo);
-        setIsEditing(false);
+  const userId = useUserId();
+  const { token } = useAuthStore();
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!userId || !token) {
+        setError("No se pudo obtener la información del usuario");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const userData = await getUserDataById(userId, token);
+
+        setUserInfo({
+          firstName: userData.firstName,
+          middleName: userData.middleName || "",
+          lastName: userData.lastName,
+          email: userData.email,
+          phoneNumber: userData.phoneNumber || "",
+          role: userData.role,
+        });
+      } catch (err) {
+        console.error("Error fetching user data:", err);
+        setError(err instanceof Error ? err.message : "Error al cargar los datos del usuario");
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    const variants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 }
-    };
+    fetchUserData();
+  }, [userId, token]);
 
+  const handleSave = async (newInfo: UserInfo) => {
+    try {
+      setIsLoading(true);
+      if (!token) throw new Error("No hay token de autenticación");
+
+      const updateData = {
+        email: newInfo.email,
+        phoneNumber: newInfo.phoneNumber,
+        newPassword: newInfo.password,
+        currentPassword: newInfo.password,
+        firstName: newInfo.firstName,
+        middleName: newInfo.middleName,
+        lastName: newInfo.lastName,
+      };
+
+      await updateUserData(token, updateData);
+
+      setUserInfo(newInfo);
+      setIsEditing(false);
+    } catch (err) {
+      console.error("Error updating user data:", err);
+      setError(err instanceof Error ? err.message : "Error al actualizar los datos del usuario");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
+  if (isLoading) {
     return (
-        <>
-            <motion.div 
-                initial="hidden"
-                animate="visible"
-                variants={variants}
-                transition={{ duration: 0.3 }}
-                className=" py-8 px-4 sm:px-6 lg:px-8"
-            >
-                <div className="max-w-4xl mx-auto">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={isEditing ? "edit" : "view"}
-                            initial={{ opacity: 0, x: isEditing ? 20 : -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: isEditing ? -20 : 20 }}
-                            transition={{ duration: 0.3 }}
-                            className="flex flex-col md:flex-row rounded-xl shadow-lg overflow-hidden bg-[var(--section-color)]"
-                            >
-                            {isEditing ? (
-                                <UserProfileEdit 
-                                    userInfo={userInfo} 
-                                    onSave={handleSave} 
-                                    onCancel={() => setIsEditing(false)} 
-                                />
-                            ) : (
-                                <UserProfileView 
-                                    userInfo={userInfo} 
-                                    onEdit={() => setIsEditing(true)} 
-                                />
-                            )}
-                        </motion.div>
-                    </AnimatePresence>
-                </div>
-            </motion.div>
-        </>
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
     );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-red-500 text-center p-4 rounded-lg bg-red-50">
+          {error}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div 
+      initial="hidden"
+      animate="visible"
+      variants={variants}
+      transition={{ duration: 0.3 }}
+      className="py-8 px-4 sm:px-6 lg:px-8"
+    >
+      <div className="max-w-xl mx-auto">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={isEditing ? "edit" : "view"}
+            initial={{ opacity: 0, x: isEditing ? 20 : -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: isEditing ? -20 : 20 }}
+            transition={{ duration: 0.3 }}
+            className="rounded-xl shadow-lg overflow-hidden bg-[var(--section-color)]"
+          >
+            {isEditing ? (
+              <UserProfileEdit 
+                userInfo={userInfo} 
+                onSave={handleSave} 
+                onCancel={() => setIsEditing(false)} 
+              />
+            ) : (
+              <UserProfileView 
+                userInfo={userInfo} 
+                onEdit={() => setIsEditing(true)} 
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
 }
