@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useUserId } from "../../hooks/useUserId";
 import { useAuthStore } from "../../store/auth.store";
 import { getUserDataById, updateUserData } from "../../api/Users";
+import Loader from "../../components/loader";
 
 interface UserInfo {
   firstName: string;
@@ -45,12 +46,12 @@ export default function ProfileScreen() {
         const userData = await getUserDataById(userId, token);
 
         setUserInfo({
-          firstName: userData.firstName,
-          middleName: userData.middleName || "",
-          lastName: userData.lastName,
-          email: userData.email,
-          phoneNumber: userData.phoneNumber || "",
-          role: userData.role,
+          firstName: userData.firstName ?? "",
+          middleName: userData.middleName ?? "",
+          lastName: userData.lastName ?? "",
+          email: userData.email ?? "",
+          phoneNumber: userData.phoneNumber ?? "",
+          role: userData.role ?? "",
         });
       } catch (err) {
         console.error("Error fetching user data:", err);
@@ -79,7 +80,6 @@ export default function ProfileScreen() {
       };
 
       await updateUserData(token, updateData);
-
       setUserInfo(newInfo);
       setIsEditing(false);
     } catch (err) {
@@ -92,13 +92,13 @@ export default function ProfileScreen() {
 
   const variants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
+    visible: { opacity: 1, y: 0 },
   };
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="h-screen flex items-center justify-center">
+        <Loader />
       </div>
     );
   }
@@ -114,7 +114,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial="hidden"
       animate="visible"
       variants={variants}
@@ -132,15 +132,15 @@ export default function ProfileScreen() {
             className="rounded-xl shadow-lg overflow-hidden bg-[var(--section-color)]"
           >
             {isEditing ? (
-              <UserProfileEdit 
-                userInfo={userInfo} 
-                onSave={handleSave} 
-                onCancel={() => setIsEditing(false)} 
+              <UserProfileEdit
+                userInfo={userInfo}
+                onSave={handleSave}
+                onCancel={() => setIsEditing(false)}
               />
             ) : (
-              <UserProfileView 
-                userInfo={userInfo} 
-                onEdit={() => setIsEditing(true)} 
+              <UserProfileView
+                userInfo={userInfo}
+                onEdit={() => setIsEditing(true)}
               />
             )}
           </motion.div>

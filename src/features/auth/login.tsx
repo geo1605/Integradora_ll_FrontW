@@ -31,6 +31,9 @@ export default function Login({ clear }: { clear: boolean }) {
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isConsentGiven, setIsConsentGiven] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+
 
   const loginSuccessModal = useDisclosure();
   const qrModal = useDisclosure();
@@ -40,27 +43,31 @@ export default function Login({ clear }: { clear: boolean }) {
 
   const togglePassword = () => setShowPassword(!showPassword);
 
-  const handleLogin = async () => {
-    try {
-      const data = await loginUser(email, password);
-      const token = data.token || data.accessToken;
+const handleLogin = async () => {
+  setIsLoading(true);
+  try {
+    const data = await loginUser(email, password);
+    const token = data.token || data.accessToken;
 
-      if (token) {
-        setToken(token);
+    if (token) {
+      setToken(token);
 
-        loginSuccessModal.onOpen();
-        setTimeout(() => {
-          navigate("/");
-        }, 2000);
-      } else {
-        throw new Error("Token no encontrado");
-      }
-    } catch (err: any) {
-      console.error("Login failed:", err);
-      setErrorMessage(err.message || "Error de autenticación");
-      setErrorModalOpen(true);
+      loginSuccessModal.onOpen();
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
+    } else {
+      throw new Error("Token no encontrado");
     }
-  };
+  } catch (err: any) {
+    console.error("Login failed:", err);
+    setErrorMessage(err.message || "Error de autenticación");
+    setErrorModalOpen(true);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   useEffect(() => {
     if (clear) {
@@ -146,8 +153,9 @@ export default function Login({ clear }: { clear: boolean }) {
           className="w-full text-white"
           color="success"
           onPress={handleLogin}
+          isLoading={isLoading}
         >
-          Aceptar
+          Iniciar Sesión
         </Button>
         <Link href="/Change" className="text-sm text-blue-500 hover:underline">
           ¿Haz olvidado tu contraseña?
@@ -212,29 +220,7 @@ export default function Login({ clear }: { clear: boolean }) {
         Escanear código QR
       </Button>
 
-      {/* ✅ Modal: Login Exitoso */}
-      <Modal
-        isOpen={loginSuccessModal.isOpen}
-        onOpenChange={loginSuccessModal.onOpenChange}
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="text-green-600 font-bold">
-                ¡Login exitoso!
-              </ModalHeader>
-              <ModalBody>
-                <p>Serás redirigido al inicio en unos segundos...</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="success" onPress={onClose}>
-                  Cerrar
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+      
 
       {/* ❌ Modal: Error */}
       <Modal

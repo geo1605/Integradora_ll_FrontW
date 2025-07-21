@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Navbar,
   NavbarBrand,
@@ -14,6 +14,7 @@ import {
   NavbarMenu,
   NavbarMenuItem,
   Switch,
+  useDisclosure,
 } from "@heroui/react";
 import {
   LeafIcon,
@@ -33,6 +34,7 @@ import { useTheme } from "../contexts/themeContext";
 import { useUserRole } from "../hooks/useUserRole";
 import { getUserDataById } from "../api/Users";
 import { useUserId } from "../hooks/useUserId"; 
+import AlertModal from "./alerts";
 
 export default function SuudaiNavbar() {
   const { token, setToken } = useAuthStore();
@@ -42,6 +44,7 @@ export default function SuudaiNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [email, setEmail] = useState("Cargando...");
   const role = useUserRole();
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   useEffect(() => {
     const fetchUserEmail = async () => {
@@ -96,155 +99,167 @@ export default function SuudaiNavbar() {
   };
 
   return (
-    <Navbar
-      className="text-white shadow-md"
-      style={{ backgroundColor: "var(--green)" }}
-      maxWidth="full"
-      isBordered
-      isBlurred={false}
-      position="sticky"
-      isMenuOpen={isMenuOpen}
-      onMenuOpenChange={setIsMenuOpen}
-    >
-      <NavbarContent>
-        <NavbarMenuToggle
-          aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-          className="sm:hidden"
-        />
-        <Link to="/" className="flex items-center gap-2 px-4 py-2 no-underline text-inherit">
-          <NavbarBrand>
-            <img src={logo} alt="SUUDAI logo" className="h-12" />
-            <span className="font-bold text-lg">SUUDAI</span>
-          </NavbarBrand>
-        </Link>
-      </NavbarContent>
+    <>
+      <Navbar
+        className="text-white shadow-md"
+        style={{ backgroundColor: "var(--green)" }}
+        maxWidth="full"
+        isBordered
+        isBlurred={false}
+        position="sticky"
+        isMenuOpen={isMenuOpen}
+        onMenuOpenChange={setIsMenuOpen}
+      >
+        <NavbarContent>
+          <NavbarMenuToggle
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            className="sm:hidden"
+          />
+          <Link to="/" className="flex items-center gap-2 px-4 py-2 no-underline text-inherit">
+            <NavbarBrand>
+              <img src={logo} alt="SUUDAI logo" className="h-12" />
+              <span className="font-bold text-lg">SUUDAI</span>
+            </NavbarBrand>
+          </Link>
+        </NavbarContent>
 
-      <NavbarContent className="gap-6 hidden sm:flex" justify="center">
-        {filteredMenuItems.map(({ label, icon, path, key }) => (
-          <NavbarItem key={key}>
-            <Link to={path} className="flex flex-col items-center text-white">
-              {icon}
-              <span className="text-xs">{label}</span>
-            </Link>
-          </NavbarItem>
-        ))}
+        <NavbarContent className="gap-6 hidden sm:flex" justify="center">
+          {filteredMenuItems.map(({ label, icon, path, key }) => (
+            <NavbarItem key={key}>
+              <Link to={path} className="flex flex-col items-center text-white">
+                {icon}
+                <span className="text-xs">{label}</span>
+              </Link>
+            </NavbarItem>
+          ))}
 
-        {hasManagementItems && (
-          <Dropdown>
+          {hasManagementItems && (
+            <Dropdown>
+              <DropdownTrigger>
+                <Button
+                  disableRipple
+                  className="bg-transparent text-white p-0 data-[hover=true]:bg-transparent"
+                  radius="sm"
+                  variant="light"
+                  endContent={<ChevronDown size={16} />}
+                >
+                  <div className="flex flex-col items-center">
+                    <BarChart2Icon size={20} />
+                    <span className="text-xs">Gestión</span>
+                  </div>
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu aria-label="Gestion Menu">
+                {allowedRoutes.includes("inventory") ? (
+                  <DropdownItem key="inventory" onClick={() => handleMenuItemClick("/inventory")}>
+                    Inventario
+                  </DropdownItem>
+                ) : null}
+                {allowedRoutes.includes("users") ? (
+                  <DropdownItem key="users" onClick={() => handleMenuItemClick("/users")}>
+                    Usuarios
+                  </DropdownItem>
+                ) : null}
+              </DropdownMenu>
+            </Dropdown>
+          )}
+        </NavbarContent>
+
+        <NavbarContent as="div" justify="end">
+          <Dropdown placement="bottom-end">
             <DropdownTrigger>
-              <Button
-                disableRipple
-                className="bg-transparent text-white p-0 data-[hover=true]:bg-transparent"
-                radius="sm"
-                variant="light"
-                endContent={<ChevronDown size={16} />}
-              >
-                <div className="flex flex-col items-center">
-                  <BarChart2Icon size={20} />
-                  <span className="text-xs">Gestión</span>
-                </div>
-              </Button>
+              <Avatar
+                isBordered
+                as="button"
+                className="transition-transform"
+                size="sm"
+                icon={<UserIcon size={20} className="text-white" />}
+              />
             </DropdownTrigger>
-            <DropdownMenu aria-label="Gestion Menu">
-              {allowedRoutes.includes("inventory") ? (
-                <DropdownItem key="inventory" onClick={() => handleMenuItemClick("/inventory")}>
-                  Inventario
-                </DropdownItem>
-              ) : null}
-              {allowedRoutes.includes("users") ? (
-                <DropdownItem key="users" onClick={() => handleMenuItemClick("/users")}>
-                  Usuarios
-                </DropdownItem>
-              ) : null}
+            <DropdownMenu aria-label="Profile Actions" variant="flat">
+              <DropdownItem key="profile" className="h-14 gap-2">
+                <p className="font-semibold">Inició sesión como:</p>
+                <p className="font-semibold">{email}</p>
+              </DropdownItem>
+              <DropdownItem key="settings" onClick={() => navigate("/profile")}>
+                Ajustes de Perfil
+              </DropdownItem>
+              <DropdownItem key="notifications">Notificaciones</DropdownItem>
+              <DropdownItem key="switch" isReadOnly>
+                <div className="flex items-center justify-between w-full">
+                  <span className="text-sm font-medium">Modo Oscuro</span>
+                  <Switch
+                    isSelected={theme === "dark"}
+                    onValueChange={toggleTheme}
+                    color="success"
+                    size="sm"
+                    endContent={<Moon size={16} />}
+                    startContent={<Sun size={16} />}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+              </DropdownItem>
+              <DropdownItem key="logout" color="danger" onPress={onOpen}>
+                Cerrar Sesión
+              </DropdownItem>
             </DropdownMenu>
           </Dropdown>
-        )}
-      </NavbarContent>
+        </NavbarContent>
 
-      <NavbarContent as="div" justify="end">
-        <Dropdown placement="bottom-end">
-          <DropdownTrigger>
-            <Avatar
-              isBordered
-              as="button"
-              className="transition-transform"
-              size="sm"
-              icon={<UserIcon size={20} className="text-white" />} // Icono de usuario
-            />
-          </DropdownTrigger>
-          <DropdownMenu aria-label="Profile Actions" variant="flat">
-            <DropdownItem key="profile" className="h-14 gap-2">
-              <p className="font-semibold">Inició sesión como:</p>
-              <p className="font-semibold">{email}</p>
-            </DropdownItem>
-            <DropdownItem key="settings" onClick={() => navigate("/profile")}>
-              Ajustes de Perfil
-            </DropdownItem>
-            <DropdownItem key="notifications">Notificaciones</DropdownItem>
-            <DropdownItem key="switch" isReadOnly>
-              <div className="flex items-center justify-between w-full">
-                <span className="text-sm font-medium">Modo Oscuro</span>
-                <Switch
-                  isSelected={theme === "dark"}
-                  onValueChange={toggleTheme}
-                  color="success"
-                  size="sm"
-                  endContent={<Moon size={16} />}
-                  startContent={<Sun size={16} />}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </div>
-            </DropdownItem>
-            <DropdownItem key="logout" color="danger" onPress={handleLogout}>
-              Cerrar Sesión
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
-      </NavbarContent>
+        <NavbarMenu>
+          {filteredMenuItems.map(({ label, icon, path, key }) => (
+            <NavbarMenuItem key={key}>
+              <Button
+                variant="light"
+                className="w-full flex gap-2 items-center justify-start text-left"
+                onClick={() => handleMenuItemClick(path)}
+              >
+                {icon}
+                {label}
+              </Button>
+            </NavbarMenuItem>
+          ))}
 
-      <NavbarMenu>
-        {filteredMenuItems.map(({ label, icon, path, key }) => (
-          <NavbarMenuItem key={key}>
-            <Button
-              variant="light"
-              className="w-full flex gap-2 items-center justify-start text-left"
-              onClick={() => handleMenuItemClick(path)}
-            >
-              {icon}
-              {label}
-            </Button>
-          </NavbarMenuItem>
-        ))}
+          {hasManagementItems && (
+            <>
+              {allowedRoutes.includes("inventory") && (
+                <NavbarMenuItem>
+                  <Button
+                    variant="light"
+                    className="w-full flex gap-2 items-center justify-start text-left"
+                    onClick={() => handleMenuItemClick("/inventory")}
+                  >
+                    <BarChart2Icon size={18} />
+                    Inventario
+                  </Button>
+                </NavbarMenuItem>
+              )}
+              {allowedRoutes.includes("users") && (
+                <NavbarMenuItem>
+                  <Button
+                    variant="light"
+                    className="w-full flex gap-2 items-center justify-start text-left"
+                    onClick={() => handleMenuItemClick("/users")}
+                  >
+                    <BarChart2Icon size={18} />
+                    Usuarios
+                  </Button>
+                </NavbarMenuItem>
+              )}
+            </>
+          )}
+        </NavbarMenu>
+      </Navbar>
 
-        {hasManagementItems && (
-          <>
-            {allowedRoutes.includes("inventory") && (
-              <NavbarMenuItem>
-                <Button
-                  variant="light"
-                  className="w-full flex gap-2 items-center justify-start text-left"
-                  onClick={() => handleMenuItemClick("/inventory")}
-                >
-                  <BarChart2Icon size={18} />
-                  Inventario
-                </Button>
-              </NavbarMenuItem>
-            )}
-            {allowedRoutes.includes("users") && (
-              <NavbarMenuItem>
-                <Button
-                  variant="light"
-                  className="w-full flex gap-2 items-center justify-start text-left"
-                  onClick={() => handleMenuItemClick("/users")}
-                >
-                  <BarChart2Icon size={18} />
-                  Usuarios
-                </Button>
-              </NavbarMenuItem>
-            )}
-          </>
-        )}
-      </NavbarMenu>
-    </Navbar>
+      <AlertModal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        title="Confirmar cierre de sesión"
+        message="¿Estás seguro de que deseas cerrar sesión?"
+        confirmText="Cerrar sesión"
+        cancelText="Cancelar"
+        onConfirm={handleLogout}
+      />
+    </>
   );
 }

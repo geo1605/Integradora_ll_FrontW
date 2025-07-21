@@ -54,9 +54,9 @@ function App() {
 
             {/* Ruta sin navbar */}
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/Change" element= {<EmailSend/>} />
+            <Route path="/EmailPassword" element= {<EmailSend/>} />
 
-            <Route path="/NewPassword" element= {<ChangePassword/>}/>
+            <Route path="/reset-password" element= {<ChangePassword/>}/>
 
             {/* Rutas protegidas con navbar */}
             <Route

@@ -1,18 +1,32 @@
 import { motion } from "framer-motion";
 import { Card, CardBody, CardHeader, Progress } from "@heroui/react";
-import { Zap } from "lucide-react"; // Cambio de icono
+import { Zap } from "lucide-react";
 
-export default function Conductivity() {
-  const conductivity = 350; // Valor en µS/cm o similar, ajusta según tu sensor
+interface ConductivityProps {
+  value?: number;
+}
 
-  // Determinar color según la conductividad (puedes ajustar los rangos según tu aplicación)
+export default function Conductivity({ value }: ConductivityProps) {
+  // Determinar color según la conductividad
   let iconColor = "text-[var(--green)]";
   let progressColor: "default" | "success" | "primary" | "secondary" | "warning" | "danger" = "success";
 
-  if (conductivity > 700) {
+  if (value === undefined || value === null) {
+    return (
+      <Card>
+        <CardBody>
+          <div className="text-center py-4">Datos de conductividad no disponibles</div>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  const roundedValue = Math.round(value * 10) / 10; // Redondear a 1 decimal
+
+  if (roundedValue > 700) {
     iconColor = "text-[var(--alert)]";
     progressColor = "danger";
-  } else if (conductivity > 500) {
+  } else if (roundedValue > 500) {
     iconColor = "text-[var(--blue)]";
     progressColor = "primary";
   }
@@ -50,7 +64,7 @@ export default function Conductivity() {
             className="flex items-baseline gap-1"
           >
             <span className={`text-2xl sm:text-3xl font-bold ${iconColor}`}>
-              {conductivity}
+              {roundedValue}
             </span>
             <span className="text-base sm:text-lg text-gray-600">µS/cm</span>
           </motion.div>
@@ -65,7 +79,7 @@ export default function Conductivity() {
           >
             <Progress
               aria-label="Conductivity level"
-              value={conductivity / 10} // Escalado opcional (0–100)
+              value={(roundedValue / 10) * 100} // Ajuste para mostrar correctamente en la barra
               color={progressColor}
               size="sm"
             />

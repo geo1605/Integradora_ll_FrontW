@@ -2,12 +2,12 @@
 import {Card } from '@heroui/react'
 import Controls from './controls'
 import ParameterSettings from './Parameters'
-import CameraImage from '../../components/camera';
+import CameraImage from '../../components/Camera';
 
 export default function MonitoringScreen() {
   return (
     <>
-
+    
       <div className="p-6">
         <h2 className="text-3xl font-bold text-green-700 mb-4">
           Monitoreo y Control

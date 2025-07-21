@@ -17,16 +17,18 @@ export default function UserProfileEdit({
     role: string;
     password?: string;
   };
-  onSave: (info: typeof userInfo & { password?: string }) => void;
+  onSave: (info: typeof userInfo & { password?: string }) => Promise<void> | void;
   onCancel: () => void;
 }) {
   const [form, setForm] = useState({
     ...userInfo,
-    password: ""
+    password: "",
+    confirmPassword: ""
   });
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -36,21 +38,34 @@ export default function UserProfileEdit({
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
   const isPhoneValid = /^\d{10}$/.test(form.phoneNumber || "");
   const isPasswordValid = form.password === "" || /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(form.password);
+  const doPasswordsMatch = form.password === form.confirmPassword;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const requiredFields = ["firstName", "middleName", "lastName", "email", "phoneNumber"];
     const hasErrors = requiredFields.some(field => !form[field as keyof typeof form]) ||
-      !isEmailValid || !isPhoneValid || !isPasswordValid;
+      !isEmailValid || 
+      !isPhoneValid || 
+      !isPasswordValid ||
+      (form.password && !doPasswordsMatch);
 
     if (hasErrors) {
-      setTouched(requiredFields.reduce((acc, field) => ({ ...acc, [field]: true }), {}));
+      setTouched({
+        ...requiredFields.reduce((acc, field) => ({ ...acc, [field]: true }), {}),
+        password: true,
+        confirmPassword: true
+      });
       return;
     }
 
-    onSave({
-      ...form,
-      password: currentPassword
-    });
+    setIsSaving(true);
+    try {
+      await onSave({
+        ...form,
+        password: currentPassword
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -115,30 +130,49 @@ export default function UserProfileEdit({
           />
 
           {/* Contraseña actual */}
-            <Input
-              label="Contraseña actual"
-              type="password"
-              placeholder="••••••••"
-              value={currentPassword}
-              startContent={<LockIcon className="h-4 w-4" />}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              endContent={
+          <Input
+            label="Contraseña actual"
+            type="password"
+            placeholder="Contraseña"
+            startContent={<LockIcon className="h-4 w-4" />}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            endContent={
               <button type="button" onClick={() => setShowPassword(!showPassword)}>
                 {showPassword ? <XIcon className="h-4 w-4" /> : <CheckIcon className="h-4 w-4" />}
               </button>
             }
-            />
-          
+          />
 
           {/* Nueva contraseña */}
           <Input
             label="Nueva contraseña"
             type={showPassword ? "text" : "password"}
-            placeholder="••••••••"
-            value={form.password}
+            placeholder="Contraseña Nueva"
             onChange={(e) => handleChange("password", e.target.value)}
-            isInvalid={touched.password && !isPasswordValid}
-            errorMessage="Debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número"
+            isInvalid={(touched.password && !isPasswordValid) || (touched.confirmPassword && !doPasswordsMatch)}
+            errorMessage={
+              !isPasswordValid 
+                ? "Debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número"
+                : "Las contraseñas no coinciden"
+            }
+            className="w-full"
+            startContent={<LockIcon className="h-4 w-4" />}
+            endContent={
+              <button type="button" onClick={() => setShowPassword(!showPassword)}>
+                {showPassword ? <XIcon className="h-4 w-4" /> : <CheckIcon className="h-4 w-4" />}
+              </button>
+            }
+          />
+
+          {/* Repetir contraseña */}
+          <Input
+            label="Repetir contraseña"
+            type={showPassword ? "text" : "password"}
+            placeholder="Repetir Contraseña"
+            value={form.confirmPassword}
+            onChange={(e) => handleChange("confirmPassword", e.target.value)}
+            isInvalid={touched.confirmPassword && !doPasswordsMatch}
+            errorMessage="Las contraseñas no coinciden"
             className="w-full"
             startContent={<LockIcon className="h-4 w-4" />}
             endContent={
@@ -151,14 +185,29 @@ export default function UserProfileEdit({
           {/* Botones */}
           <div className="flex space-x-3 pt-4">
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
-              <Button color="primary" onClick={handleSubmit}>
-                <CheckIcon className="mr-2 h-4 w-4" />
-                Guardar Cambios
+              <Button 
+                color="primary" 
+                onClick={handleSubmit}
+                isLoading={isSaving}
+              >
+                {isSaving ? (
+                  "Guardando..."
+                ) : (
+                  <>
+                    <CheckIcon className="mr-2 h-4 w-4" />
+                    Guardar Cambios
+                  </>
+                )}
               </Button>
             </motion.div>
 
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
-              <Button color="danger" variant="light" onClick={onCancel}>
+              <Button 
+                color="danger" 
+                variant="light" 
+                onClick={onCancel}
+                isDisabled={isSaving}
+              >
                 Cancelar
               </Button>
             </motion.div>

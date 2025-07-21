@@ -18,13 +18,14 @@ import {
   useDisclosure,
 } from "@heroui/react";
 import ToolFormModal from './ToolFormModal';
-import AlertModal from '../../components/alerts'
+import {AlertModal, Loader} from '../../components/'
 import {
   createTool,
   getAllTools,
   updateTool,
   deleteTool
 } from '../../api/tools.inventory';
+
 
 interface Tool {
   _id: string;
@@ -75,6 +76,7 @@ export default function ToolsTable() {
   const [toolToDelete, setToolToDelete] = React.useState<Tool | null>(null);
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
+  const [isDeleting, setIsDeleting] = React.useState(false); // Estado para el loader
 
   React.useEffect(() => {
     const fetchTools = async () => {
@@ -106,6 +108,7 @@ export default function ToolsTable() {
   const confirmDeleteTool = async () => {
     if (!toolToDelete) return;
     try {
+      setIsDeleting(true); // Activar loader
       await deleteTool(toolToDelete._id);
       setTools(prev => prev.filter(tool => tool._id !== toolToDelete._id));
       setToolToDelete(null);
@@ -113,6 +116,8 @@ export default function ToolsTable() {
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Error al eliminar herramienta');
       setErrorModalOpen(true);
+    } finally {
+      setIsDeleting(false); // Desactivar loader
     }
   };
 
@@ -194,8 +199,7 @@ export default function ToolsTable() {
         return value as React.ReactNode;
     }
   };
-
-  if (isLoading) return <div>Cargando herramientas...</div>;
+  if (isLoading) return<Loader />;
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (
@@ -276,15 +280,21 @@ export default function ToolsTable() {
 
       <AlertModal
         isOpen={deleteModalOpen}
-        onOpenChange={setDeleteModalOpen}   // Aquí va para controlar abrir/cerrar
+        onOpenChange={(isOpen) => {
+          if (!isOpen && !isDeleting) {
+            setDeleteModalOpen(false);
+          }
+        }}
         title="¿Eliminar herramienta?"
         message={`¿Estás seguro de que deseas eliminar "${toolToDelete?.toolName}"?`}
-        confirmText="Eliminar"
+        confirmText={isDeleting ? "Eliminando..." : "Eliminar"}
         cancelText="Cancelar"
         onConfirm={confirmDeleteTool}
-        showCancelButton={true}  // o omitir porque es true por defecto
+        showCancelButton={true}
+        isConfirmLoading={isDeleting}
+        isConfirmDisabled={isDeleting}
+        isCancelDisabled={isDeleting}
       />
-
 
       <AlertModal
         isOpen={errorModalOpen}
@@ -292,10 +302,9 @@ export default function ToolsTable() {
         title="Error"
         message={errorMessage}
         confirmText="Cerrar"
-        showCancelButton={false}  // oculta botón cancelar
+        showCancelButton={false}
         onConfirm={() => setErrorModalOpen(false)}
       />
-
     </div>
   );
 }

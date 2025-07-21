@@ -126,11 +126,12 @@ export default function UpdateUser({ user, onClose, onUpdateSuccess }: UpdateUse
             isRequired
           >
             {Object.keys(roleMap).map((readableRole) => (
-              <SelectItem key={readableRole} value={roleMap[readableRole]}>
+              <SelectItem key={roleMap[readableRole]}>
                 {readableRole}
               </SelectItem>
             ))}
           </Select>
+
         </ModalBody>
         <ModalFooter>
           <Button color="danger" variant="light" onPress={onClose}>

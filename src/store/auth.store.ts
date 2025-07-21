@@ -12,7 +12,7 @@ interface AuthState {
 const SECRET_KEY = import.meta.env.VITE_SECRET_CRYPTO_JS;
 
 export const useAuthStore = create<AuthState>()(
-  persist(
+  persist<AuthState, [], [], Pick<AuthState, 'token'>>(
     (set) => ({
       token: null,
       isLoading: true,

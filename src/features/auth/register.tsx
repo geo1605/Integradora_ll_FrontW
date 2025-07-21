@@ -44,6 +44,8 @@ export default function Register({ clear }: RegisterProps) {
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
 
   const togglePassword = () => setShowPassword((prev) => !prev);
 
@@ -53,6 +55,7 @@ export default function Register({ clear }: RegisterProps) {
   };
 
   const handleSubmit = async () => {
+    setIsLoading(true);
     try {
       const response = await registerUser(formData);
       const token = response.token || response.accessToken;
@@ -67,6 +70,8 @@ export default function Register({ clear }: RegisterProps) {
       console.error("Error en el registro:", err);
       setErrorMessage(err.message || "Error al registrarse");
       setErrorModalOpen(true);
+    } finally {
+      setIsLoading(false); 
     }
   };
 
@@ -160,7 +165,7 @@ export default function Register({ clear }: RegisterProps) {
           isRequired
           label="Contraseña"
           type={showPassword ? "text" : "password"}
-          placeholder="********"
+          placeholder="Contraseña"
           startContent={<LockIcon />}
           description="Mínimo 8 caracteres, incluye mayúsculas, minúsculas y números"
           className="w-full"
@@ -186,7 +191,7 @@ export default function Register({ clear }: RegisterProps) {
           isRequired
           label="Confirmar Contraseña"
           type={showPassword ? "text" : "password"}
-          placeholder="********"
+          placeholder="Contraseña"
           startContent={<LockIcon />}
           className="w-full"
           endContent={
@@ -211,10 +216,13 @@ export default function Register({ clear }: RegisterProps) {
           color="success"
           className="w-full text-white"
           variant="solid"
+          isLoading={isLoading}
           onPress={handleSubmit}
         >
           Crear Cuenta
         </Button>
+
+
       </Form>
 
       {/* Modal de éxito */}

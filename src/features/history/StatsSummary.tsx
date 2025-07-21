@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Thermometer, Zap, FlaskConical, ShieldCheck } from "lucide-react";
 import { Card } from "@heroui/react";
 import { motion } from "framer-motion";
+import { getAllSensorRegisters } from "../../api/sensors"; // Adjust the import path as necessary
 
 const StatCard = ({ 
   title, 
@@ -41,28 +42,77 @@ const StatCard = ({
 );
 
 export default function StatsSummary() {
-  const generalStatus = "Normal"; // cambiar a "Alerta" para ver el efecto
-  const isNormal = generalStatus === "Normal";
+  const [stats, setStats] = useState({
+    avgTemp: 0,
+    avgConductivity: 0,
+    avgPh: 0,
+    status: "Normal"
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await getAllSensorRegisters();
+        const data = response.data;
+
+        if (data.length > 0) {
+          // Calcular promedios
+          const sum = data.reduce((acc, item) => {
+            const sensor = item.sensors[0];
+            return {
+              temp: acc.temp + sensor.temperature,
+              conductivity: acc.conductivity + sensor.conductivity,
+              ph: acc.ph + sensor.ph,
+              status: item.status ? acc.status + 1 : acc.status
+            };
+          }, { temp: 0, conductivity: 0, ph: 0, status: 0 });
+
+          const avgTemp = sum.temp / data.length;
+          const avgConductivity = sum.conductivity / data.length;
+          const avgPh = sum.ph / data.length;
+          const statusPercentage = (sum.status / data.length) * 100;
+
+          setStats({
+            avgTemp,
+            avgConductivity,
+            avgPh,
+            status: statusPercentage > 80 ? "Normal" : 
+                   statusPercentage > 50 ? "Desviación" : "Alerta"
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const isNormal = stats.status === "Normal";
+  const isWarning = stats.status === "Desviación";
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <StatCard
         title="Temperatura Promedio"
-        value="22.4°C"
+        value={loading ? "--" : `${stats.avgTemp.toFixed(1)}°C`}
         icon={<Thermometer className="text-orange-500 w-5 h-5" />}
         color="bg-orange-500"
         animate={true}
       />
       <StatCard
         title="Conductividad Promedio"
-        value="1.3 mS/cm"
+        value={loading ? "--" : `${stats.avgConductivity.toFixed(2)} mS/cm`}
         icon={<Zap className="text-cyan-500 w-5 h-5" />}
         color="bg-cyan-500"
         animate={true}
       />
       <StatCard
         title="pH Promedio"
-        value="6.8"
+        value={loading ? "--" : stats.avgPh.toFixed(1)}
         icon={<FlaskConical className="text-purple-500 w-5 h-5" />}
         color="bg-purple-500"
         animate={true}
@@ -70,20 +120,31 @@ export default function StatsSummary() {
       <StatCard
         title="Estado General"
         value={
-          <motion.span 
-            className={`font-semibold ${isNormal ? "text-green-600" : "text-red-600"}`}
-            animate={!isNormal ? { 
-              scale: [1, 1.05, 1],
-              transition: { duration: 1.5, repeat: Infinity } 
-            } : {}}
-          >
-            {generalStatus}
-          </motion.span>
+          loading ? "--" : (
+            <motion.span 
+              className={`font-semibold ${
+                isNormal ? "text-green-600" : 
+                isWarning ? "text-yellow-600" : "text-red-600"
+              }`}
+              animate={!isNormal ? { 
+                scale: [1, 1.05, 1],
+                transition: { duration: 1.5, repeat: Infinity } 
+              } : {}}
+            >
+              {stats.status}
+            </motion.span>
+          )
         }
         icon={
-          <ShieldCheck className={`${isNormal ? "text-green-600" : "text-red-600"} w-5 h-5`} />
+          <ShieldCheck className={`${
+            isNormal ? "text-green-600" : 
+            isWarning ? "text-yellow-600" : "text-red-600"
+          } w-5 h-5`} />
         }
-        color={isNormal ? "bg-green-500" : "bg-red-500"}
+        color={
+          isNormal ? "bg-green-500" : 
+          isWarning ? "bg-yellow-500" : "bg-red-500"
+        }
         animate={!isNormal}
       />
     </div>

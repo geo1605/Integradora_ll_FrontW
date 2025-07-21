@@ -6,6 +6,8 @@ const API_URL = import.meta.env.VITE_API_URL
 
 interface UserData {
   userPK: {
+    phoneNumber: string;
+    middleName: string;
     id: string;
     name?: string;
     firstName?: string;

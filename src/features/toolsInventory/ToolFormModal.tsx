@@ -26,7 +26,7 @@ interface ToolFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialData?: Partial<ToolData>;
-  onSubmit: (data: ToolData) => void;
+  onSubmit: (data: ToolData) => Promise<void> | void;
 }
 
 const descriptionOptions = [
@@ -56,6 +56,7 @@ export default function ToolFormModal({
   const [alertOnConfirm, setAlertOnConfirm] = React.useState<
     (() => void) | undefined
   >(undefined);
+  const [isSaving, setIsSaving] = React.useState(false); // Estado para el loader
 
   React.useEffect(() => {
     if (initialData) {
@@ -77,7 +78,6 @@ export default function ToolFormModal({
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
-  // Ahora con parámetro para decidir si cerrar modal formulario antes de mostrar alerta
   const showAlert = (
     title: string,
     message: string,
@@ -98,9 +98,8 @@ export default function ToolFormModal({
     }, 0);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.toolName.trim()) {
-      // No cerramos modal formulario en error
       showAlert(
         "Error",
         "El nombre de la herramienta es requerido",
@@ -112,8 +111,9 @@ export default function ToolFormModal({
       return;
     }
 
+    setIsSaving(true); // Activar loader
     try {
-      onSubmit(formData);
+      await onSubmit(formData);
       showAlert(
         "¡Guardado exitosamente!",
         "La herramienta se ha guardado correctamente.",
@@ -125,7 +125,6 @@ export default function ToolFormModal({
         }
       );
     } catch {
-      // En error no cerramos modal formulario
       showAlert(
         "Error",
         "Error inesperado al guardar la herramienta",
@@ -134,6 +133,8 @@ export default function ToolFormModal({
         undefined,
         false
       );
+    } finally {
+      setIsSaving(false); // Desactivar loader
     }
   };
 
@@ -167,7 +168,7 @@ export default function ToolFormModal({
                   }
                 >
                   {descriptionOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
+                    <SelectItem key={option.value}>
                       {option.label}
                     </SelectItem>
                   ))}
@@ -182,11 +183,19 @@ export default function ToolFormModal({
                 </Checkbox>
               </ModalBody>
               <ModalFooter>
-                <Button variant="light" onPress={onCloseInner}>
+                <Button 
+                  variant="light" 
+                  onPress={onCloseInner}
+                  isDisabled={isSaving}
+                >
                   Cancelar
                 </Button>
-                <Button color="success" onPress={handleSubmit}>
-                  Guardar
+                <Button 
+                  color="success" 
+                  onPress={handleSubmit}
+                  isLoading={isSaving}
+                >
+                  {isSaving ? "Guardando..." : "Guardar"}
                 </Button>
               </ModalFooter>
             </>

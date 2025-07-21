@@ -4,28 +4,32 @@ import {
   PopoverContent,
   Tooltip,
   Button,
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerBody,
-  DrawerFooter,
-  useDisclosure,
-  Input,
-  Form,
-  Select,
-  SelectItem,
-  Checkbox,
   Modal,
   ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
+  useDisclosure,
+  Input,
+  Select,
+  SelectItem,
+  Checkbox,
 } from "@heroui/react";
 import PopOverPlant from "./PopOverPlant";
 import { useState } from "react";
 import { PlantIcon } from "./plant.icon";
 import { updateModule, deleteModule } from "../../api/Botanic";
 import AlertModal from "../../components/alerts";
+
+// Función para traducir estados al español
+const translateStatusToSpanish = (status: string) => {
+  const statusMap: Record<string, string> = {
+    'Growing': 'Creciendo',
+    'Geerntet': 'Germinando',
+    'Dead': 'Muerta'
+  };
+  return statusMap[status] || status;
+};
 
 interface ModuleProps {
   name: string;
@@ -47,7 +51,7 @@ export default function Module({
   onUpdate,
 }: ModuleProps) {
   const { isOpen: isPopoverOpen, onOpenChange: setPopoverOpen } = useDisclosure();
-  const { isOpen: isDrawerOpen, onOpen: openDrawer, onOpenChange: setDrawerOpen } = useDisclosure();
+  const { isOpen: isEditModalOpen, onOpen: openEditModal, onOpenChange: setEditModalOpen } = useDisclosure();
   const { isOpen: isDeleteModalOpen, onOpenChange: setDeleteModalOpen } = useDisclosure();
 
   const [hasPlant, setHasPlant] = useState(!!plantName);
@@ -57,7 +61,7 @@ export default function Module({
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
   const [isVisible, setIsVisible] = useState(true);
-  const [moduleDeleted, setModuleDeleted] = useState(false); // Flag para ocultar módulo tras alerta
+  const [moduleDeleted, setModuleDeleted] = useState(false);
 
   const [moduleData, setModuleData] = useState({
     name,
@@ -65,6 +69,7 @@ export default function Module({
     plantName: plantName || "",
     type,
     status,
+    statusDisplay: translateStatusToSpanish(status) // Estado traducido para mostrar
   });
 
   const handleSave = async () => {
@@ -78,15 +83,21 @@ export default function Module({
               {
                 plantName: moduleData.plantName,
                 type: moduleData.type,
-                status: moduleData.status,
+                status: moduleData.status, // Enviar en inglés al backend
               },
             ]
           : [],
       };
 
       await updateModule(name, updateData);
-      setDrawerOpen();
+      setEditModalOpen();
       if (onUpdate) onUpdate();
+
+      // Actualizar el estado mostrado
+      setModuleData(prev => ({
+        ...prev,
+        statusDisplay: translateStatusToSpanish(prev.status)
+      }));
 
       setAlertTitle("Módulo actualizado");
       setAlertMessage(`El módulo "${moduleData.name}" se ha actualizado correctamente.`);
@@ -114,7 +125,7 @@ export default function Module({
         await deleteModule(name);
         setAlertTitle("Módulo eliminado");
         setAlertMessage(`El módulo "${name}" fue eliminado correctamente.`);
-        setModuleDeleted(true); // marcar para ocultar tras cerrar alerta
+        setModuleDeleted(true);
       }
 
       setDeleteModalOpen();
@@ -142,6 +153,7 @@ export default function Module({
         plantName: "",
         type: "Hortaliza",
         status: "Growing",
+        statusDisplay: "Creciendo"
       }));
     }
   };
@@ -182,11 +194,11 @@ export default function Module({
             name={moduleData.name}
             ubication={moduleData.ubication}
             plantName={moduleData.plantName}
-            status={moduleData.status}
+            status={moduleData.statusDisplay} // Mostrar estado traducido
             createDate={createDate}
             onEditClick={() => {
               setPopoverOpen();
-              openDrawer();
+              openEditModal();
             }}
             onDeleteClick={() => {
               setPopoverOpen();
@@ -196,85 +208,95 @@ export default function Module({
         </PopoverContent>
       </Popover>
 
-      <Drawer isOpen={isDrawerOpen} placement="left" onOpenChange={setDrawerOpen}>
-        <DrawerContent className="flex items-center justify-center">
-          <DrawerHeader className="flex flex-col gap-1">Editar Módulo</DrawerHeader>
-          <DrawerBody className="w-full flex justify-center items-center">
-            <Form className="space-y-6 w-full max-w-sm" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
-              <h2 className="text-7xl font-bold text-center mb-4" style={{ color: "var(--blue)" }}>
-                {moduleData.name}
-              </h2>
+      {/* Modal de edición (reemplazo del Drawer) */}
+      <Modal isOpen={isEditModalOpen} onOpenChange={setEditModalOpen} size="xl">
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1">
+            <h2 className="text-3xl font-bold" style={{ color: "var(--blue)" }}>
+              Editar Módulo {moduleData.name}
+            </h2>
+          </ModalHeader>
+          <ModalBody className="space-y-6">
+            <Input
+              isRequired
+              label="Nombre del módulo"
+              value={moduleData.name}
+              onChange={(e) => handleInputChange("name", e.target.value)}
+            />
 
-              <Input
-                isRequired
-                label="Nombre del módulo"
-                value={moduleData.name}
-                onChange={(e) => handleInputChange("name", e.target.value)}
-              />
+            <Select
+              label="Ubicación"
+              selectedKeys={[moduleData.ubication]}
+              onChange={(e) => handleInputChange("ubication", e.target.value)}
+            >
+              <SelectItem key="Sector Norte">Sector Norte</SelectItem>
+              <SelectItem key="Sector Sur">Sector Sur</SelectItem>
+              <SelectItem key="Sector Este">Sector Este</SelectItem>
+              <SelectItem key="Sector Oeste">Sector Oeste</SelectItem>
+            </Select>
 
-              <Select
-                label="Ubicación"
-                selectedKeys={[moduleData.ubication]}
-                onChange={(e) => handleInputChange("ubication", e.target.value)}
-              >
-                <SelectItem key="Sector Norte">Sector Norte</SelectItem>
-                <SelectItem key="Sector Sur">Sector Sur</SelectItem>
-                <SelectItem key="Sector Este">Sector Este</SelectItem>
-                <SelectItem key="Sector Oeste">Sector Oeste</SelectItem>
-              </Select>
+            <Checkbox
+              isSelected={hasPlant}
+              onValueChange={handlePlantToggle}
+              className="mt-4"
+            >
+              Contiene planta
+            </Checkbox>
 
-              <Checkbox
-                isSelected={hasPlant}
-                onValueChange={handlePlantToggle}
-                className="mt-4"
-              >
-                Contiene planta
-              </Checkbox>
+            {hasPlant && (
+              <>
+                <Input
+                  label="Nombre de la planta"
+                  value={moduleData.plantName}
+                  onChange={(e) => handleInputChange("plantName", e.target.value)}
+                />
 
-              {hasPlant && (
-                <>
-                  <Input
-                    label="Nombre de la planta"
-                    value={moduleData.plantName}
-                    onChange={(e) => handleInputChange("plantName", e.target.value)}
-                  />
+                <Select
+                  label="Tipo de planta"
+                  selectedKeys={[moduleData.type]}
+                  onChange={(e) => handleInputChange("type", e.target.value)}
+                >
+                  <SelectItem key="Hortaliza">Hortaliza</SelectItem>
+                  <SelectItem key="Fruta">Fruta</SelectItem>
+                  <SelectItem key="Hierba">Hierba</SelectItem>
+                  <SelectItem key="Flor">Flor</SelectItem>
+                </Select>
 
-                  <Select
-                    label="Tipo de planta"
-                    selectedKeys={[moduleData.type]}
-                    onChange={(e) => handleInputChange("type", e.target.value)}
-                  >
-                    <SelectItem key="Hortaliza">Hortaliza</SelectItem>
-                    <SelectItem key="Fruta">Fruta</SelectItem>
-                    <SelectItem key="Hierba">Hierba</SelectItem>
-                    <SelectItem key="Flor">Flor</SelectItem>
-                  </Select>
-
-                  <Select
-                    label="Estado"
-                    selectedKeys={[moduleData.status]}
-                    onChange={(e) => handleInputChange("status", e.target.value)}
-                  >
-                    <SelectItem key="Growing">Growing</SelectItem>
-                    <SelectItem key="Germinating">Germinating</SelectItem>
-                    <SelectItem key="Harvesting">Harvesting</SelectItem>
-                    <SelectItem key="Dormant">Dormant</SelectItem>
-                  </Select>
-                </>
-              )}
-            </Form>
-          </DrawerBody>
-          <DrawerFooter className="flex justify-between w-full">
-            <Button color="danger" variant="light" onClick={() => setDrawerOpen()}>
+                <Select
+                  label="Estado"
+                  selectedKeys={[moduleData.status]}
+                  onChange={(e) => {
+                    handleInputChange("status", e.target.value);
+                    // Actualizar el estado mostrado también
+                    setModuleData(prev => ({
+                      ...prev,
+                      statusDisplay: translateStatusToSpanish(e.target.value)
+                    }));
+                  }}
+                >
+                  <SelectItem key="Growing">Creciendo</SelectItem>
+                  <SelectItem key="Geerntet">Germinando</SelectItem>
+                  <SelectItem key="Dead">Muerta</SelectItem>
+                </Select>
+              </>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button color="danger" variant="light" onClick={() => setEditModalOpen()}>
               Cancelar
             </Button>
-            <Button color="success" onClick={handleSave} isLoading={isSaving}>
-              Guardar cambios
+            <Button 
+              color="success" 
+              onClick={handleSave}
+              isLoading={isSaving}
+            >
+              {isSaving ? "Guardando..." : "Guardar cambios"}
             </Button>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
+      {/* Modal de eliminación */}
       <Modal isOpen={isDeleteModalOpen} onOpenChange={setDeleteModalOpen}>
         <ModalContent>
           <ModalHeader className="flex flex-col gap-1">Confirmar eliminación</ModalHeader>
@@ -304,7 +326,7 @@ export default function Module({
               onClick={() => handleDelete(false)}
               isLoading={isDeleting}
             >
-              Eliminar módulo completo
+              {isDeleting ? "Eliminando..." : "Eliminar módulo completo"}
             </Button>
             {hasPlant && (
               <p className="text-sm text-gray-500 mt-1">

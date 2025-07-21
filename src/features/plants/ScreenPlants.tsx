@@ -14,7 +14,17 @@ import {
   useDisclosure,
   Checkbox
 } from "@heroui/react";
-import AlertModal from "../../components/alerts"; // Importamos el componente AlertModal
+import {AlertModal, Loader} from "../../components/"; // Importamos el componente AlertModal
+
+// Función para traducir estados al español
+const translateStatusToSpanish = (status: string) => {
+  const statusMap: Record<string, string> = {
+    'Growing': 'Creciendo',
+    'Geerntet': 'Germinando',
+    'Dead': 'Muerta'
+  };
+  return statusMap[status] || status;
+};
 
 export default function HydroSystem() {
   const [modules, setModules] = useState<any[]>([]);
@@ -26,6 +36,7 @@ export default function HydroSystem() {
   const [showAlert, setShowAlert] = useState(false);
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
+  const [isAddingModule, setIsAddingModule] = useState(false); // Estado para el loader del botón
 
   // Estado para el nuevo módulo
   const [newModule, setNewModule] = useState({
@@ -40,7 +51,15 @@ export default function HydroSystem() {
     const loadModules = async () => {
       try {
         const data = await getAllModules();
-        setModules(data);
+        // Traducir los estados al español para el frontend
+        const translatedData = data.map(module => ({
+          ...module,
+          plants: module.plants?.map(plant => ({
+            ...plant,
+            statusDisplay: translateStatusToSpanish(plant.status)
+          })) || []
+        }));
+        setModules(translatedData);
       } catch (error) {
         console.error("Error loading modules:", error);
         setAlertTitle("Error al cargar");
@@ -81,6 +100,7 @@ export default function HydroSystem() {
   };
 
   const handleAddModule = async () => {
+    setIsAddingModule(true); // Activar loader del botón
     try {
       if (!newModule.name.trim()) {
         throw new Error('El nombre del módulo es requerido');
@@ -92,12 +112,22 @@ export default function HydroSystem() {
         plants: includePlant ? [{
           plantName: newModule.plantName,
           type: newModule.type,
-          status: newModule.status
+          status: newModule.status // Enviar en inglés al backend
         }] : []
       };
 
       const createdModule = await createModule(moduleData);
-      setModules([...modules, createdModule]);
+      
+      // Traducir el estado para el frontend
+      const translatedModule = {
+        ...createdModule,
+        plants: createdModule.plants?.map(plant => ({
+          ...plant,
+          statusDisplay: translateStatusToSpanish(plant.status)
+        })) || []
+      };
+      
+      setModules([...modules, translatedModule]);
       onAddModalOpenChange();
       
       // Reset form
@@ -120,10 +150,12 @@ export default function HydroSystem() {
       setAlertTitle("Error al crear");
       setAlertMessage(error.message || "Ocurrió un error al crear el módulo");
       setShowAlert(true);
+    } finally {
+      setIsAddingModule(false); // Desactivar loader del botón
     }
   };
 
-  if (loading) return <div className="text-center py-8">Cargando módulos...</div>;
+  if (loading) return <Loader />;
 
   const modulosPorPipe = 3;
   const totalPipes = Math.ceil(modules.length / modulosPorPipe);
@@ -257,10 +289,9 @@ export default function HydroSystem() {
                     selectedKeys={[newModule.status]}
                     onChange={(e) => setNewModule({...newModule, status: e.target.value})}
                   >
-                    <SelectItem key="Growing">Growing</SelectItem>
-                    <SelectItem key="Germinating">Germinating</SelectItem>
-                    <SelectItem key="Harvesting">Harvesting</SelectItem>
-                    <SelectItem key="Dormant">Dormant</SelectItem>
+                    <SelectItem key="Growing">Creciendo</SelectItem>
+                    <SelectItem key="Geerntet">Germinando</SelectItem>
+                    <SelectItem key="Dead">Muerta</SelectItem>
                   </Select>
                 </>
               )}
@@ -273,8 +304,12 @@ export default function HydroSystem() {
             }}>
               Cancelar
             </Button>
-            <Button color="success" onClick={handleAddModule}>
-              Añadir Módulo
+            <Button 
+              color="success" 
+              onClick={handleAddModule}
+              isLoading={isAddingModule} // Mostrar loader cuando se está agregando
+            >
+              {isAddingModule ? "Procesando..." : "Añadir Módulo"}
             </Button>
           </ModalFooter>
         </ModalContent>

@@ -1,15 +1,30 @@
 import { useEffect, useMemo, useState } from "react";
-import type { Key } from 'react';
+import type { Key } from "react";
 import {
-  Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
-  Input, Button, DropdownTrigger, Dropdown, DropdownMenu, DropdownItem,
-  Chip, User, Pagination, Modal, useDisclosure
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  Input,
+  Button,
+  DropdownTrigger,
+  Dropdown,
+  DropdownMenu,
+  DropdownItem,
+  Chip,
+  User,
+  Pagination,
+  Modal,
+  useDisclosure,
 } from "@heroui/react";
 import SearchIcon from "@mui/icons-material/Search";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { getAllUsers, updateUserByAdmin } from "../../api/Users";
+import { getAllUsers } from "../../api/Users";
 import UpdateUser from "./UpdateUser";
+import { Loader } from "../../components";
 
 interface User {
   _id: string;
@@ -26,7 +41,7 @@ const roleMap: Record<string, string> = {
   Adm1ni$trad0r: "Administrador",
   M4ntenim1ent0: "Mantenimiento",
   B0t4nic0: "Botánico",
-  Default: "Default"
+  Default: "Default",
 };
 
 const columns = [
@@ -35,17 +50,17 @@ const columns = [
   { name: "Correo", uid: "email" },
   { name: "Teléfono", uid: "phoneNumber" },
   { name: "Estatus", uid: "status", sortable: true },
-  { name: "Acciones", uid: "actions" }
+  { name: "Acciones", uid: "actions" },
 ];
 
 const statusOptions = [
   { name: "Activo", uid: "true" },
-  { name: "Inactivo", uid: "false" }
+  { name: "Inactivo", uid: "false" },
 ];
 
 const statusColorMap: Record<string, "success" | "danger"> = {
-  "true": "success",
-  "false": "danger"
+  true: "success",
+  false: "danger",
 };
 
 const INITIAL_VISIBLE_COLUMNS = ["name", "email", "role", "status", "actions"];
@@ -60,9 +75,11 @@ export default function UserTable() {
   const [page, setPage] = useState(1);
   const [sortDescriptor, setSortDescriptor] = useState({
     column: "name" as keyof User,
-    direction: "ascending" as "ascending" | "descending"
+    direction: "ascending" as "ascending" | "descending",
   });
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadUsers();
@@ -70,22 +87,29 @@ export default function UserTable() {
 
   const loadUsers = async () => {
     try {
+      setIsLoading(true);
       const res = await getAllUsers();
       setUsers(res.userList);
+      setError(null);
     } catch (err) {
+      setError("Error al cargar usuarios");
       console.error("Error al cargar usuarios", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const filteredItems = useMemo(() => {
     let filtered = [...users];
     if (filterValue) {
-      filtered = filtered.filter(user =>
-        `${user.firstName} ${user.lastName}`.toLowerCase().includes(filterValue.toLowerCase())
+      filtered = filtered.filter((user) =>
+        `${user.firstName} ${user.lastName}`
+          .toLowerCase()
+          .includes(filterValue.toLowerCase())
       );
     }
     if (statusFilter !== "all") {
-      filtered = filtered.filter(user => String(user.status) === statusFilter);
+      filtered = filtered.filter((user) => String(user.status) === statusFilter);
     }
     return filtered;
   }, [users, filterValue, statusFilter]);
@@ -113,7 +137,7 @@ export default function UserTable() {
       case "name":
         return (
           <User
-            name={`${user.firstName} ${user.middleName || ''} ${user.lastName}`}
+            name={`${user.firstName} ${user.middleName || ""} ${user.lastName}`}
             description={user.email}
           />
         );
@@ -126,7 +150,7 @@ export default function UserTable() {
       case "status":
         return (
           <Chip
-            color={statusColorMap[String(user.status)]}
+            color={statusColorMap[String(user.status) as keyof typeof statusColorMap]}
             className="capitalize"
             size="sm"
             variant="flat"
@@ -165,14 +189,17 @@ export default function UserTable() {
     }
   };
 
-  const statusItems = useMemo(() => (
-    <>
-      <DropdownItem key="all">Todos</DropdownItem>
-      {statusOptions.map((status) => (
-        <DropdownItem key={status.uid}>{status.name}</DropdownItem>
-      ))}
-    </>
-  ), []);
+  const statusItems = useMemo(
+    () => (
+      <>
+        <DropdownItem key="all">Todos</DropdownItem>
+        {statusOptions.map((status) => (
+          <DropdownItem key={status.uid}>{status.name}</DropdownItem>
+        ))}
+      </>
+    ),
+    []
+  );
 
   const topContent = (
     <div className="flex flex-col gap-4">
@@ -229,9 +256,7 @@ export default function UserTable() {
       </div>
 
       <div className="flex justify-between items-center">
-        <span className="text-default-400 text-small">
-          Total {users.length} usuarios
-        </span>
+        <span className="text-default-400 text-small">Total {users.length} usuarios</span>
         <label className="flex items-center text-default-400 text-small">
           Filas por página:
           <select
@@ -252,9 +277,7 @@ export default function UserTable() {
 
   const bottomContent = (
     <div className="py-2 px-2 flex justify-between items-center">
-      <span className="w-[30%] text-small text-default-400">
-        {filteredItems.length} usuarios
-      </span>
+      <span className="w-[30%] text-small text-default-400">{filteredItems.length} usuarios</span>
       <Pagination
         isCompact
         showControls
@@ -265,10 +288,20 @@ export default function UserTable() {
         onChange={setPage}
       />
       <div className="hidden sm:flex w-[30%] justify-end gap-2">
-        <Button isDisabled={page === 1} size="sm" variant="flat" onPress={() => setPage(page - 1)}>
+        <Button
+          isDisabled={page === 1}
+          size="sm"
+          variant="flat"
+          onPress={() => setPage(page - 1)}
+        >
           Anterior
         </Button>
-        <Button isDisabled={page === pages} size="sm" variant="flat" onPress={() => setPage(page + 1)}>
+        <Button
+          isDisabled={page === pages}
+          size="sm"
+          variant="flat"
+          onPress={() => setPage(page + 1)}
+        >
           Siguiente
         </Button>
       </div>
@@ -276,15 +309,24 @@ export default function UserTable() {
   );
 
   const headerColumns = useMemo(() => {
-    return columns.filter(col => visibleColumns.has(col.uid));
+    return columns.filter((col) => visibleColumns.has(col.uid));
   }, [visibleColumns]);
 
-  const handleSortChange = (descriptor: { column: Key, direction: 'ascending' | 'descending' }) => {
+  const handleSortChange = (descriptor: { column: Key; direction: "ascending" | "descending" }) => {
     setSortDescriptor({
       column: descriptor.column as keyof User,
-      direction: descriptor.direction
+      direction: descriptor.direction,
     });
   };
+
+  // Mostrar loader si está cargando y aún no hay usuarios ni error
+  if (isLoading && users.length === 0 && !error) {
+    return <Loader />;
+  }
+
+  if (error) {
+    return <div className="text-red-500 p-4">{error}</div>;
+  }
 
   return (
     <>
@@ -308,22 +350,14 @@ export default function UserTable() {
         <TableBody emptyContent="No se encontraron usuarios" items={sortedItems}>
           {(item) => (
             <TableRow key={item._id}>
-              {(columnKey) => (
-                <TableCell>{renderCell(item, columnKey as string)}</TableCell>
-              )}
+              {(columnKey) => <TableCell>{renderCell(item, columnKey as string)}</TableCell>}
             </TableRow>
           )}
         </TableBody>
       </Table>
-      
+
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-        {selectedUser && (
-          <UpdateUser 
-            user={selectedUser} 
-            onClose={onOpenChange}
-            onUpdateSuccess={loadUsers}
-          />
-        )}
+        {selectedUser && <UpdateUser user={selectedUser} onClose={onOpenChange} onUpdateSuccess={loadUsers} />}
       </Modal>
     </>
   );

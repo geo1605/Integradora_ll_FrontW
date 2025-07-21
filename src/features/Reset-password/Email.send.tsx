@@ -2,26 +2,36 @@ import fondo from '../../assets/fondo_auth.png';
 import logo from '../../assets/blanco.webp';
 import { Form, Input, Button } from '@heroui/react';
 import { useState } from 'react';
-import { requestPasswordReset } from '../../api/Email';
-import AlertModal from '../../components/alerts'; // Ajusta la ruta si tu modal está en otra carpeta
+import AlertModal from '../../components/alerts';
+import { requestPasswordReset } from '../../api/password'; // Asegúrate de importar la función correcta
 
 export default function EmailSend() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
+  const [modalSuccess, setModalSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email) {
+      setModalError('Por favor ingresa tu correo electrónico');
+      setModalOpen(true);
+      return;
+    }
+
     setLoading(true);
     setModalError(null);
+    setModalSuccess(false);
 
     try {
-      const res = await requestPasswordReset(email);
-      setModalError(null);
+      // Llamada real al endpoint de reseteo de contraseña
+      await requestPasswordReset(email);
+      setModalSuccess(true);
       setModalOpen(true);
     } catch (err: any) {
-      setModalError(err.message || 'Ocurrió un error.');
+      setModalError(err.message || 'Ocurrió un error al enviar el correo.');
       setModalOpen(true);
     } finally {
       setLoading(false);
@@ -54,7 +64,13 @@ export default function EmailSend() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <Button type="submit" color="success" className="w-full" isLoading={loading}>
+              <Button 
+                type="submit" 
+                color="success" 
+                className="w-full" 
+                isLoading={loading}
+                disabled={loading}
+              >
                 Enviar código
               </Button>
             </Form>
@@ -67,8 +83,8 @@ export default function EmailSend() {
         onOpenChange={setModalOpen}
         title={modalError ? "Error" : "Correo enviado"}
         message={
-          modalError
-            ? modalError
+          modalError 
+            ? modalError 
             : "Se ha enviado un correo con instrucciones para restablecer tu contraseña."
         }
         confirmText="Aceptar"

@@ -2,23 +2,37 @@ import { motion } from "framer-motion";
 import { Card, CardBody, CardHeader, Progress } from "@heroui/react";
 import { Thermometer } from "lucide-react";
 
-export default function Temperature() {
-  const temperature = 24; // Puedes cambiar este valor dinámicamente
+interface TemperatureProps {
+  value?: number;
+}
 
+export default function Temperature({ value }: TemperatureProps) {
   // Determinar color según la temperatura
   let iconColor = "text-[var(--green)]";
-  let progressColor: "default" | "success" | "primary" | "secondary" | "warning" | "danger" = "success"; // Especificar el tipo correcto
+  let progressColor: "default" | "success" | "primary" | "secondary" | "warning" | "danger" = "success";
 
-  if (temperature < 10) {
+  if (value === undefined || value === null) {
+    return (
+      <Card>
+        <CardBody>
+          <div className="text-center py-4">Datos de temperatura no disponibles</div>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  const roundedValue = Math.round(value * 10) / 10; // Redondear a 1 decimal
+
+  if (roundedValue < 10) {
     iconColor = "text-[var(--blue)]";
     progressColor = "primary";
-  } else if (temperature > 30) {
+  } else if (roundedValue > 30) {
     iconColor = "text-[var(--alert)]";
     progressColor = "danger";
   }
 
   // Calcular valor de progreso (ajustado para rango 0-40°C)
-  const progressValue = Math.min(Math.max(temperature, 0), 40) * 2.5;
+  const progressValue = Math.min(Math.max(roundedValue, 0), 40) * 2.5;
 
   return (
     <motion.div
@@ -55,7 +69,7 @@ export default function Temperature() {
             className="flex items-baseline gap-1"
           >
             <span className={`text-2xl sm:text-3xl font-bold ${iconColor}`}>
-              {temperature}
+              {roundedValue}
             </span>
             <span className="text-base sm:text-lg text-gray-600">°C</span>
           </motion.div>
