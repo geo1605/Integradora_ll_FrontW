@@ -1,11 +1,20 @@
 import { SuudaiNavbar } from "../components";
 import { Outlet } from "react-router-dom";
+import { useEffect } from "react";
+import { connectWebSocketAlerts } from "../api/Alerts";
+import { ToastProvider } from "@heroui/react"; // Añade esto
 
 export default function Main() {
-    return (
-        <>
-        <SuudaiNavbar />
-        <Outlet />
-        </>
-    )
+  useEffect(() => {
+    connectWebSocketAlerts();
+  }, []);
+
+  return (
+    <>
+  <ToastProvider />
+  <SuudaiNavbar />
+  <Outlet />
+</>
+
+  );
 }

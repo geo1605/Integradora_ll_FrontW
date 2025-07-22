@@ -157,7 +157,7 @@ const handleLogin = async () => {
         >
           Iniciar Sesión
         </Button>
-        <Link href="/Change" className="text-sm text-blue-500 hover:underline">
+        <Link href="EmailPassword" className="text-sm text-blue-500 hover:underline">
           ¿Haz olvidado tu contraseña?
         </Link>
       </Form>
