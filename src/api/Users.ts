@@ -14,8 +14,6 @@ interface UserData {
     lastName?: string;
     email: string;
     role: string;
-    avatar?: string;
-    // Agrega otros campos según lo que devuelva tu backend
   };
 }
 

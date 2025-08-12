@@ -4,6 +4,18 @@ import { Card } from "@heroui/react";
 import { motion } from "framer-motion";
 import { getAllSensorRegisters } from "../../api/sensors"; // Adjust the import path as necessary
 
+interface Sensor {
+  temperature: number;
+  conductivity: number;
+  ph: number;
+}
+
+interface DataItem {
+  sensors: Sensor[];
+  status?: boolean;
+}
+
+
 const StatCard = ({ 
   title, 
   value, 
@@ -48,17 +60,18 @@ export default function StatsSummary() {
     avgPh: 0,
     status: "Normal"
   });
+  
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await getAllSensorRegisters();
-        const data = response.data;
+  const fetchStats = async () => {
+    try {
+      const response = await getAllSensorRegisters();
+      const data: DataItem[] = response.data;
 
-        if (data.length > 0) {
-          // Calcular promedios
-          const sum = data.reduce((acc, item) => {
+      if (data.length > 0) {
+        const sum = data.reduce(
+          (acc: { temp: number; conductivity: number; ph: number; status: number }, item: DataItem) => {
             const sensor = item.sensors[0];
             return {
               temp: acc.temp + sensor.temperature,
@@ -66,30 +79,37 @@ export default function StatsSummary() {
               ph: acc.ph + sensor.ph,
               status: item.status ? acc.status + 1 : acc.status
             };
-          }, { temp: 0, conductivity: 0, ph: 0, status: 0 });
+          },
+          { temp: 0, conductivity: 0, ph: 0, status: 0 }
+        );
 
-          const avgTemp = sum.temp / data.length;
-          const avgConductivity = sum.conductivity / data.length;
-          const avgPh = sum.ph / data.length;
-          const statusPercentage = (sum.status / data.length) * 100;
+        const avgTemp = sum.temp / data.length;
+        const avgConductivity = sum.conductivity / data.length;
+        const avgPh = sum.ph / data.length;
+        const statusPercentage = (sum.status / data.length) * 100;
 
-          setStats({
-            avgTemp,
-            avgConductivity,
-            avgPh,
-            status: statusPercentage > 80 ? "Normal" : 
-                   statusPercentage > 50 ? "Desviación" : "Alerta"
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching stats:", error);
-      } finally {
-        setLoading(false);
+        setStats({
+          avgTemp,
+          avgConductivity,
+          avgPh,
+          status:
+            statusPercentage > 80
+              ? "Normal"
+              : statusPercentage > 50
+              ? "Desviación"
+              : "Alerta"
+        });
       }
-    };
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchStats();
-  }, []);
+  fetchStats();
+}, []);
+
 
   const isNormal = stats.status === "Normal";
   const isWarning = stats.status === "Desviación";

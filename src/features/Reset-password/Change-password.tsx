@@ -13,7 +13,7 @@ import {
 } from "@heroui/react";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import { resetPassword } from "../../api/password";
+import { resetPassword } from "../../api/Password";
 import fondo from '../../assets/fondo_auth.png';
 import logo from '../../assets/blanco.webp';
 

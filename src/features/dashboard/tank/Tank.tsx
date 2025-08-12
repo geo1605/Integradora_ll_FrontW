@@ -7,7 +7,13 @@ interface TankProps {
 
 export default function Tank({ level, ph }: TankProps) {
   // Manejar valores undefined/null
-  const displayLevel = level !== undefined ? Math.round(level) : 0;
+  const displayLevel = (() => {
+  if (level === undefined || level === null) return 0;
+  if (level >= 2) return 20;
+  if (level <= 3) return 80;
+  return Math.round(level); // fallback si en el futuro hay otros valores
+})();
+
   const displayPh = ph !== undefined ? ph.toFixed(1) : '--';
 
   // Determinar color del pH basado en su valor
@@ -22,9 +28,7 @@ export default function Tank({ level, ph }: TankProps) {
     <div className="relative w-full rounded-md overflow-hidden shadow-lg h-full">
       {/* Texto del porcentaje en un círculo blanco */}
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full flex items-center justify-center bg-white z-20">
-        <span className="text-2xl font-bold text-black">
-          {displayLevel}%
-        </span>
+
       </div>
 
       {/* Texto de pH debajo del círculo */}

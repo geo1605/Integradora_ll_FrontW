@@ -34,7 +34,7 @@ export default function Home() {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 5000); // Actualizar cada 5 segundos
+    const interval = setInterval(fetchData, 300000); // Actualizar cada 5 segundos
 
     return () => clearInterval(interval);
   }, []);

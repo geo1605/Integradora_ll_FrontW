@@ -16,6 +16,19 @@ import {
 } from "@heroui/react";
 import {AlertModal, Loader} from "../../components/"; // Importamos el componente AlertModal
 
+interface Plant {
+  plantName: string;
+  type: string;
+  status: string;
+  statusDisplay?: string; // agregado para traducción
+}
+
+interface Module {
+  name: string;
+  ubication: string;
+  plants?: Plant[];
+}
+
 // Función para traducir estados al español
 const translateStatusToSpanish = (status: string) => {
   const statusMap: Record<string, string> = {
@@ -52,13 +65,14 @@ export default function HydroSystem() {
       try {
         const data = await getAllModules();
         // Traducir los estados al español para el frontend
-        const translatedData = data.map(module => ({
+        const translatedData = data.map((module: Module) => ({
           ...module,
-          plants: module.plants?.map(plant => ({
+          plants: module.plants?.map((plant: Plant) => ({
             ...plant,
             statusDisplay: translateStatusToSpanish(plant.status)
           })) || []
         }));
+
         setModules(translatedData);
       } catch (error) {
         console.error("Error loading modules:", error);
@@ -121,11 +135,12 @@ export default function HydroSystem() {
       // Traducir el estado para el frontend
       const translatedModule = {
         ...createdModule,
-        plants: createdModule.plants?.map(plant => ({
+        plants: createdModule.plants?.map((plant: Plant) => ({
           ...plant,
           statusDisplay: translateStatusToSpanish(plant.status)
         })) || []
       };
+
       
       setModules([...modules, translatedModule]);
       onAddModalOpenChange();

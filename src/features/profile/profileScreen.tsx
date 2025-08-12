@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useUserId } from "../../hooks/useUserId";
 import { useAuthStore } from "../../store/auth.store";
 import { getUserDataById, updateUserData } from "../../api/Users";
-import Loader from "../../components/loader";
+import Loader from "../../components/Loader";
 
 interface UserInfo {
   firstName: string;

@@ -291,10 +291,8 @@ export default function ToolsTable() {
         cancelText="Cancelar"
         onConfirm={confirmDeleteTool}
         showCancelButton={true}
-        isConfirmLoading={isDeleting}
-        isConfirmDisabled={isDeleting}
-        isCancelDisabled={isDeleting}
       />
+
 
       <AlertModal
         isOpen={errorModalOpen}

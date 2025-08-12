@@ -58,7 +58,7 @@ export default function LoginQR() {
 
   return (
     <div className="flex flex-col items-center">
-      <QRCode value={sessionCode} />
+      <QRCode value={sessionCode} className="border-1 border-white" />
       <p>QR válido por: {timeLeft} segundos</p>
     </div>
   );

@@ -3,14 +3,13 @@ import logo from '../../assets/blanco.webp';
 import { Form, Input, Button } from '@heroui/react';
 import { useState } from 'react';
 import AlertModal from '../../components/alerts';
-import { requestPasswordReset } from '../../api/password'; // Asegúrate de importar la función correcta
+import { requestPasswordReset } from '../../api/Password'; // Asegúrate de importar la función correcta
 
 export default function EmailSend() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
-  const [modalSuccess, setModalSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,12 +22,11 @@ export default function EmailSend() {
 
     setLoading(true);
     setModalError(null);
-    setModalSuccess(false);
 
     try {
       // Llamada real al endpoint de reseteo de contraseña
       await requestPasswordReset(email);
-      setModalSuccess(true);
+      setModalError(null);
       setModalOpen(true);
     } catch (err: any) {
       setModalError(err.message || 'Ocurrió un error al enviar el correo.');

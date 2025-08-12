@@ -1,7 +1,6 @@
 
 import {Card } from '@heroui/react'
 import Controls from './controls'
-import ParameterSettings from './Parameters'
 import CameraImage from '../../components/Camera';
 
 export default function MonitoringScreen() {
@@ -21,7 +20,6 @@ export default function MonitoringScreen() {
 
         <Controls />
 
-        <ParameterSettings/>
       </div>
     </>
   );
