@@ -1,4 +1,3 @@
-Aquí tienes un diseño mejorado para tu README con un estilo más profesional y visualmente atractivo:
 
 ```markdown
 <!-- Banner del proyecto -->
