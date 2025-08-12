@@ -54,7 +54,7 @@
 ### Instalación
 ```bash
 # Clonar repositorio
-git clone https://github.com/tu-usuario/suudai-frontend.git
+git clone https://github.com/tu-usuario/Integradora_ll_FrontW.git
 
 # Instalar dependencias
 npm install
